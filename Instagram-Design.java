@@ -81,8 +81,8 @@ class Picture {
   private String picturePath;
   private int machineID;
   public Picture(int pictureID, String picturePath, int machineID){
-    this.pictureID = videoID;
-    this.picturePath = videoPath;
+    this.pictureID = pictureID;
+    this.picturePath = picturePath;
     this.machineID = machineID;
   }
   public int getMachineID() {
