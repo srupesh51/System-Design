@@ -1,222 +1,251 @@
-class PQ {
-  int size;
-  int size1;
-  Request arr[];
-  Request arr1[];
-  int count;
-  int count1;
-  PQ(){}
-  PQ(int sz, boolean type){
-    if(type){
-      arr1 = new Request[sz];
-    } else {
-      arr = new Request[sz];
-    }
-    if(type){
-      this.size = sz;
-    } else {
-      this.size1 = sz;
-    }
-    if(type){
-      this.count1 = 0;
-    } else {
-      this.count = 0;
-    }
+import java.util.*;
+class ElevatorHandler extends Thread {
+  private String name;
+  private int capacity;
+  private int currentFloor;
+  private boolean goingUp = true;
+  private Building thisBuilding;
+  private long floorServiceTime;
+  private long travelTime;
+  private int numPassengers;
+  private LinkedList[] passengers;
+  private int numberOfFloors;
+  private boolean running = true;
+  ElevatorHandler(String name, int numberOfFloors, int startingFloor,
+   int capacity, Building office,
+   long floorServiceTime, long travelTime){
+     name = name;
+     numberOfFloors = numberOfFloors;
+     currentFloor = startingFloor;
+     thisBuilding = office;
+     floorServiceTime = floorServiceTime;
+     travelTime = travelTime;
+     numPassengers = 0;
+     capacity = capacity;
   }
-  void addPriority(boolean type, Request d){
-    if(type){
-      insertMin(d);
-    } else {
-      insertMax(d);
-    }
+  public void stopElevator(){
+    running = false;
   }
-  Request deletePriority(boolean type){
-    if(type){
-      return deleteMin();
-    } else {
-      return deleteMax();
-    }
-  }
-  Request getMin(){
-    if(isEmpty1()){
-      return null;
-    }
-    return this.arr1[0];
-  }
-  Request getMax(){
-    if(isEmpty()){
-      return null;
-    }
-    return this.arr[0];
-  }
-  boolean isFull(){
-    return this.count == size1;
-  }
-  boolean isFull1(){
-    return this.count1 == size;
-  }
-  boolean isEmpty(){
-    return this.count == 0;
-  }
-  boolean isEmpty1(){
-    return this.count1 == 0;
-  }
-  void insertMax(Request d){
-    if(isFull()){
-      return;
-    }
-    this.count++;
-    int i = this.count - 1;
-    arr[i] = d;
-    while(i > 0 && this.arr[i].s > this.arr[(i - 1)/2].s){
-      swap(arr,i, (i - 1)/2);
-      i = (i - 1)/2;
-    }
-  }
-  Request deleteMin(){
-    if(isEmpty1()){
-      return null;
-    }
-    Request root = arr1[0];
-    arr1[0] = arr1[this.count1 - 1];
-    this.count1--;
-    minHeapify(0);
-    return root;
-  }
-  Request deleteMax(){
-    if(isEmpty()){
-      return null;
-    }
-    Request root = arr[0];
-    arr[0] = arr[this.count - 1];
-    this.count--;
-    maxHeapify(0);
-    return root;
-  }
-  void maxHeapify(int i){
-    int largest = i;
-    int left = 2 *i + 1;
-    int right = 2 *i + 2;
-    if(left < this.count && this.arr[left].s > this.arr[largest].s){
-      largest = left;
-    }
-    if(right < this.count && this.arr[right].s > this.arr[largest].s){
-      largest = right;
-    }
-    if(largest != i){
-      swap(arr,i,largest);
-      maxHeapify(largest);
-    }
-  }
-  void minHeapify(int i){
-    int smallest = i;
-    int left = 2 *i + 1;
-    int right = 2 *i + 2;
-    if(left < this.count1 && this.arr1[left].s < this.arr1[smallest].s){
-      smallest = left;
-    }
-    if(right < this.count1 && this.arr1[right].s < this.arr1[smallest].s){
-      smallest = right;
-    }
-    if(smallest != i){
-      swap(arr1,i,smallest);
-      minHeapify(smallest);
-    }
-  }
-  void insertMin(Request d){
-    if(isFull1()){
-      return;
-    }
-    this.count1++;
-    int i = this.count1 - 1;
-    arr1[i] = d;
-    while(i > 0 && this.arr1[i].s < this.arr1[(i - 1)/2].s){
-      swap(arr1,i, (i - 1)/2);
-      i = (i - 1)/2;
-    }
-  }
-  void swap(Request arr[], int i, int j){
-    Request t = arr[i];
-    arr[i] = arr[j];
-    arr[j] = t;
-  }
-}
-
-class Request {
-  int s;
-  int d;
-  Request(){}
-  Request(int s1, int d1){
-    this.s = s1;
-    this.d = d1;
-  }
-}
-
-class ElevatorService {
-  private String threadName;
-  Floor floor;
-  ElevatorService(String s, Floor f){
-    this.threadName = s;
-    this.floor = f;
+  public synchronized int getCurrentFloor(){
+    return currentFloor;
   }
   public void run(){
-      floor.upward();
-      floor.downward();
-      System.out.println("The Thread"+threadName+" exiting");
-  }
-}
-
-class Floor {
-  int floors;
-  PQ p1;
-  PQ p2;
-  Floor(){}
-  Floor(int num, PQ p1, PQ p2){
-    this.floors = num;
-    this.p1 = p1;
-    this.p2 = p2;
-  }
-  public void upward(){
-    for(int i = 1; i <= this.floors; i++){
-      if(!p1.isEmpty1()){
-        Request r = p1.getMin();
-        if(r.s == i){
-          System.out.println("Received user from Floor"+r.s+" whose destination"+r.d);
-          p1.deleteMin();
-        }
+    System.out.println(toString()+" Starting "+" ");
+    while(running){
+      System.out.println(toString()+" now on floor "+currentFloor+
+      " at time "+System.currentTimeMillis());
+      if(currentFloor == numberOfFloors - 1){
+        goingUp = false;
+      } else if(currentFloor == 0){
+        goingUp = true;
+      }
+      notifyPassengers();
+      thisBuilding.tellAt();
+      try {
+        sleep(floorServiceTime);
+      } catch(InterruptedException ex){
+        System.out.println(toString()+" Sleep Interrupted "+" ");
+      }
+      System.out.println(toString()+" now leaving floor "+currentFloor+
+      " at time "+System.currentTimeMillis());
+      if(goingUp){
+        currentFloor++;
+      } else {
+        currentFloor--;
+      }
+      try {
+        sleep(travelTime);
+      } catch(InterruptedException ex){
+        System.out.println(toString()+" Sleep Interrupted "+" ");
       }
     }
   }
-  public void downward(){
-    for(int i = this.floors; i >= 1; i--){
-      if(!p2.isEmpty()){
-        Request r = p2.getMax();
-        if(r.s == i){
-          System.out.println("Received user from Floor"+r.s+" whose destination"+r.d);
-          p2.deleteMax();
+  public synchronized int takeElevator(int destFloor, int currFloor,
+    Person waiter){
+      if(currentFloor == currFloor && numPassengers < capacity){
+        numPassengers++;
+        System.out.println(waiter+" getting on floor "+
+        toString()+currentFloor+" at time "+System.currentTimeMillis());
+        while(currentFloor != destFloor){
+          try {
+            wait();
+          } catch(InterruptedException ie){
+            System.out.println(toString()+" Interrupted "+ie.toString());
+          }
+        }
+        numPassengers--;
+        return destFloor;
+      } else {
+        return currFloor;
+      }
+  }
+  private synchronized void notifyPassengers(){
+    notifyAll();
+  }
+  public String toString(){
+    return name;
+  }
+  public boolean isGoingUp(){
+    return goingUp;
+  }
+}
+class Building {
+  public final int NUM_FLOORS;
+  public final int NUM_ELEVATORS;
+  private ElevatorHandler[] lift;
+  Building(int numFloors, int numElevators,
+  int elevatorCapacity, int serviceFloor, int travelTime){
+    NUM_FLOORS = numFloors;
+    NUM_ELEVATORS = numElevators;
+    lift = new ElevatorHandler[numFloors];
+    for(int i = 0; i < numElevators; i++){
+      lift[i] = new ElevatorHandler("lift"+i,NUM_FLOORS,
+      i % NUM_FLOORS, elevatorCapacity, this, serviceFloor,
+      travelTime);
+    }
+  }
+  public void startElevators(){
+    for(int i = 0; i < NUM_ELEVATORS; i++){
+      lift[i].start();
+    }
+  }
+  public void stopElevators(){
+    for(int i = 0; i < NUM_ELEVATORS; i++){
+      lift[i].stop();
+    }
+  }
+  public synchronized void tellAt(){
+    notifyAll();
+  }
+  public synchronized ElevatorHandler callElevator(int personFloor,
+    boolean goingUp){
+      while(true){
+        for(int i = 0; i < NUM_ELEVATORS; i++){
+          ElevatorHandler liftObj = lift[i];
+          if(liftObj.getCurrentFloor() == personFloor &&
+           liftObj.isGoingUp() == goingUp){
+             return lift[i];
+          }
+        }
+        try {
+          wait();
+        } catch(InterruptedException ie){
+          System.out.println(toString()+" Interrupted "+ie.toString());
+      }
+    }
+  }
+  public synchronized void waitForElevatorToCome(){
+      try {
+        wait();
+      } catch(InterruptedException ie){
+        System.out.println(toString()+" Interrupted "+ie.toString());
+    }
+  }
+}
+class Person extends Thread {
+  private static final int WAITING = 0;
+  private static final int SHOPPING = 1;
+  private static final int ON_ELEVATOR = 2;
+  private static final int DONE = 3;
+  private int status = WAITING;
+  private final int[] itinerary;
+  private final int busyTime;
+  private final String name;
+  private final Building building;
+  private int itemNumber;
+  private int currentFloor;
+  public Person(String name, int itinerary[],
+  int busyTime, int startingFloor, Building building){
+    super("Person "+name);
+    this.name = name;
+    this.itinerary = itinerary;
+    this.busyTime = busyTime;
+    this.currentFloor = startingFloor;
+    this.itemNumber = 0;
+    this.building = building;
+    for(int i = 0; i < itinerary.length; i++){
+      checkFloor(itinerary[i], building);
+    }
+    checkFloor(currentFloor, building);
+    if(busyTime < 0){
+      busyTime = 0;
+    }
+  }
+  private void checkFloor(int floor, Building office){
+    if(floor < 0 || floor >= office.NUM_FLOORS){
+      throw new RuntimeException(" Illegal Floor "+floor);
+    }
+  }
+  public void run(){
+    while(itemNumber < itinerary.length){
+      int dest = itinerary[itemNumber];
+      if(dest == currentFloor && status == ON_ELEVATOR){
+        System.out.println(name+" exiting elevator on floor "+dest+
+        " at time "+System.currentTimeMillis());
+        shopOnFloor();
+        System.out.println(name+" done shopping on floor "+dest+
+        " at time "+System.currentTimeMillis());
+        itemNumber++;
+      } else {
+        System.out.println(name+" waiting on current floor "+dest+
+        " at time "+System.currentTimeMillis());
+        ElevatorHandler elevator = building.callElevator(currentFloor,
+        dest > currentFloor);
+        System.out.println(name+" tries to get on "+elevator
+        +" to floor "+dest+" at time "+System.currentTimeMillis());
+        status = ON_ELEVATOR;
+        currentFloor = elevator.takeElevator(dest, currentFloor, this);
+        if(currentFloor != dest){
+          System.out.println(" oops "+" didnot make it to elevator on "+dest);
+          building.waitForElevatorToCome();
         }
       }
-   }
- }
+    }
+    System.out.println(name+" is done shopping ");
+  }
+  private void shopOnFloor(){
+    System.out.println(name+" arrived at floor "+currentFloor+
+    " at time "+System.currentTimeMillis());
+    status = SHOPPING;
+    try {
+      Thread.sleep(busyTime);
+    } catch(InterruptedException ie){
+      System.exit(1);
+    }
+    status = WAITING;
+  }
+  public String toString(){
+    return name;
+  }
 }
-
 public class Elevator {
-
-  public static void main(String args[]){
-    Request u1 = new Request(1,5);
-    Request u2 = new Request(2,4);
-    Request u3 = new Request(3,5);
-    Request u4 = new Request(3,2);
-    Request u5 = new Request(2,1);
-    PQ p1 = new PQ(3, true);
-    PQ p2 = new PQ(2, false);
-    p1.addPriority(u1.s < u1.d, u1);
-    p1.addPriority(u2.s < u2.d, u2);
-    p1.addPriority(u3.s < u3.d, u3);
-    p2.addPriority(u4.s < u4.d, u4);
-    p2.addPriority(u5.s < u5.d, u5);
-    Floor f = new Floor(5, p1, p2);
-    ElevatorService s1 = new ElevatorService("Elevator",f);
-    s1.run();
- }
+  private static final int TRAVEL_TIME = 1000;
+  private static final int FLOOR_TIME = 500;
+  private static final int BUSY_TIME = 3000;
+  private static final int NUM_ELEVATORS = 2;
+  private static final int ELEVATOR_CAPACITY = 2;
+  private static final int NUM_FLOORS = 3;
+  public static void main(String args[]) throws Exception {
+    Building shop = new Building(NUM_FLOORS, NUM_ELEVATORS,
+    ELEVATOR_CAPACITY, FLOOR_TIME, TRAVEL_TIME);
+    int p1[] = {1,2,0};
+    int p2[] = {2,1,0};
+    Person Steve = new Person("Steve",p1,BUSY_TIME,0,shop);
+    Person Jeff = new Person("Jeff",p2,BUSY_TIME,0,shop);
+    Person Bill = new Person("Bill",p1,BUSY_TIME,0,shop);
+    Person Einstien = new Person("Einstien",p2,BUSY_TIME,0,shop);
+    shop.startElevators();
+    Steve.start();
+    Jeff.start();
+    Bill.start();
+    Einstien.start();
+    long startTime = System.currentTimeMillis();
+    Steve.join();
+    Jeff.join();
+    Bill.join();
+    Einstien.join();
+    shop.stopElevators();
+    long elapsedTime = System.currentTimeMillis() - startTime;
+    System.out.println(" Total elapsed Time "+elapsedTime+" ms ");
+  }
 }
