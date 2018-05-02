@@ -1,39 +1,8 @@
 import java.util.*;
-interface Players {
-  public CardsGame setCardType(int num, char type);
-  public void setCard(char type, int num);
-  public CardsGame[] getCards();
-}
-class Player implements Players {
-  private int index;
-  private CardsGame[] c;
-  private static HashMap<Character, CardsGame> map =
-  new HashMap<Character, CardsGame>();
+class Player {
+  public int n;
   Player(int n){
-    c = new CardsGame[n];
-  }
-  public void setCard(char type, int num) {
-    if(this.index > c.length){
-      return;
-    }
-    this.c[this.index++] = setCardType(num, type);
-  }
-  public CardsGame[] getCards(){
-    return c;
-  }
-  public CardsGame setCardType(int num, char type) {
-    CardsGame c1 = null;
-    if(!map.containsKey(type)){
-      CardsGame c2 = new CardsGame(type);
-      c2.cNumber = num;
-      map.put(type, c2);
-    } else {
-      CardsGame c2 = map.get(type);
-      c2.cNumber = num;
-      map.put(type, c2);
-    }
-    c1 = map.get(type);
-    return c1;
+    this.n = n;
   }
 }
 public class CardsGame {
@@ -42,30 +11,48 @@ public class CardsGame {
   private char type;
   private static CardsGame[] c;
   public int cNumber;
+  private static HashMap<Character, HashMap<Integer,CardsGame>> map =
+  new HashMap<Character, HashMap<Integer,CardsGame>>();
   CardsGame(){}
   CardsGame(int n, int n1, int k){
     this.numPlayers = n;
     this.nCards = k == 0 ? (5 + n1)*n : (k+n1)*n;
     this.c = new CardsGame[this.nCards];
     int i;
+    char type[] = {'H','S','C','D'};
     for(i = 0; i < this.nCards - k - 3; i++){
-      this.c[i] = new CardsGame();
+      this.c[i] = setCardType(new Random().nextInt(10)+1, type[(int)new Random().nextInt(type.length)]);
     }
     char type1[] = {'J','Q','K'};
     for(;i < this.nCards-k; i++){
-      this.c[i] = new CardsGame();
       char t = type1[(int)new Random().nextInt(type1.length)];
-      this.c[i].type = t;
-      this.c[i].cNumber = t == 'J'?11:t == 'Q'?12:13;
+      this.c[i] = setCardType(t == 'J'?11:t == 'Q'?12:13, t);
     }
     for(;i < this.nCards; i++){
-      this.c[i] = new CardsGame();
-      this.c[i].type = 'X';
-      this.c[i].cNumber = Integer.MAX_VALUE;
+      this.c[i] = setCardType(Integer.MAX_VALUE, 'G');
     }
   }
-  CardsGame(char type){
+  public static CardsGame setCardType(int num, char type) {
+    CardsGame c1 = null;
+    if(!map.containsKey(type)){
+      CardsGame c2 = new CardsGame(type, num);
+      HashMap<Integer, CardsGame> m1 = new HashMap<Integer, CardsGame>();
+      m1.put(num, c2);
+      map.put(type, m1);
+    } else {
+      HashMap<Integer, CardsGame> m1 = map.get(type);
+      if(!m1.containsKey(num)){
+          CardsGame c2 = new CardsGame(type, num);
+          m1.put(num, c2);
+          map.put(type, m1);
+      }
+    }
+    c1 = map.get(type).get(num);
+    return c1;
+  }
+  CardsGame(char type, int num){
     this.type = type;
+    this.cNumber = num;
   }
   public CardsGame[] shuffle(CardsGame c[], int n){
     for(int i = 0; i < n; i++){
@@ -76,25 +63,53 @@ public class CardsGame {
     }
     return c;
   }
+  public static void display(Player p1, Player p2, int rem){
+    CardsGame c2[] = new CardsGame[p1.n];
+    CardsGame c3[] = new CardsGame[p2.n];
+    int index = 0;
+    for(int i = 0; i < 13; i++){
+      c2[i] = c[index];
+      c3[i] = c[++index];
+      index++;
+    }
+    Arrays.sort(c2, new Comparator<CardsGame>(){
+      public int compare(CardsGame c7, CardsGame c8){
+            Character c23 = new Character(c7.type);
+            Character c24 = new Character(c8.type);
+            return (int)(c23.compareTo(c24));
+      }
+    });
+    Arrays.sort(c3, new Comparator<CardsGame>(){
+      public int compare(CardsGame c7, CardsGame c8){
+        Character c23 = new Character(c7.type);
+        Character c24 = new Character(c8.type);
+        return (int)(c23.compareTo(c24));
+      }
+    });
+    Arrays.sort(c2, new Comparator<CardsGame>(){
+      public int compare(CardsGame c7, CardsGame c8){
+            return c7.cNumber - c8.cNumber;
+      }
+    });
+    Arrays.sort(c3, new Comparator<CardsGame>(){
+      public int compare(CardsGame c7, CardsGame c8){
+            return c7.cNumber - c8.cNumber;
+      }
+    });
+    for(int i = 0; i < c2.length; i++){
+      System.out.println(c2[i].type+" "+c2[i].cNumber+" ");
+    }
+    System.out.println(" -- ");
+    for(int i = 0; i < c3.length; i++){
+      System.out.println(c3[i].type+" "+c3[i].cNumber+" ");
+    }
+  }
   public static void main(String args[]){
     CardsGame c3 = new CardsGame(2, 52, 5);
-    Player p1 = new Player(15);
-    Player p2 = new Player(15);
+    Player p1 = new Player(13);
+    Player p2 = new Player(13);
     char type[] = {'H','S','C','D'};
-    int i;
     c = c3.shuffle(c, nCards);
-    for(i = 0; i < 10; i++){
-      p1.setCard(type[(int)new Random().nextInt(type.length)], i+1);
-      p2.setCard(type[(int)new Random().nextInt(type.length)], i+1);
-    }
-    char type1[] = {'J','Q','K'};
-    for(; i < 14; i++){
-      char t1 = type1[(int)new Random().nextInt(type1.length)];
-      p1.setCard(t1,t1 == 'J'?11:t1=='Q'?12:13);
-       t1 = type1[(int)new Random().nextInt(type1.length)];
-      p2.setCard(t1,t1 == 'J'?11:t1=='Q'?12:13);
-    }
-    p1.setCard('G',Integer.MAX_VALUE);
-    p2.setCard('G',Integer.MAX_VALUE);
+    display(p1,p2,(p1.n+p2.n));
   }
 }
