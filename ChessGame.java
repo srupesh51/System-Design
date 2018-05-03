@@ -46,7 +46,10 @@ class Pawn implements ChessPiece {
   }
   public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
     Pawn p = (Pawn)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+    return i-1 == p.pos1 && j-1 == p.pos2
+    || i-1 == p.pos1 && j+1 == p.pos2 ||
+    i+1 == p.pos1 && j - 1 == p.pos2 ||
+    i+1 == p.pos1 && j+1 == p.pos2;
   }
 }
 class Knight implements ChessPiece {
@@ -68,28 +71,28 @@ class Knight implements ChessPiece {
   public boolean isValid(int i, int j, ChessPiece anotherPiece,
   BoardSquare sq[][]) {
     Knight p = (Knight)anotherPiece;
-    if(p.pos2 + 2 == j && p.pos1+1 == i){
+    if(j + 2 < sq[0].length && i+1 < sq.length){
       return true;
     }
-    if(p.pos2 + 2 == j && p.pos1-1 == i){
+    if(j + 2 < sq[0].length && i-1 >= 0){
       return true;
     }
-    if(p.pos2 - 1 == j && p.pos1+2 == i){
+    if(j - 1 >= 0 && i+2 < sq.length){
       return true;
     }
-    if(p.pos2 + 1 == j && p.pos1-2 == i){
+    if(j + 1 < sq[0].length && i-2 >= 0){
       return true;
     }
-    if(p.pos2 - 2 == j && p.pos1+1 == i){
+    if(j - 2 >= 0 && i+1 < sq.length){
       return true;
     }
-    if(p.pos2 - 2 == j && p.pos1-1 == i){
+    if(j - 2 >= 0 && i-1 >= 0){
       return true;
     }
-    if(p.pos2 - 1 == j && p.pos1-2 == i){
+    if(j - 1 >= 0 && i-2 >= 0){
       return true;
     }
-    if(p.pos2 + 1 == j && p.pos1+2 == i){
+    if(j + 1 < sq[0].length && i+2 < sq.length){
       return true;
     }
     return false;
