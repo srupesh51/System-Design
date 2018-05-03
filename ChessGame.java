@@ -28,17 +28,21 @@ class Pawn implements ChessPiece {
   }
   public boolean isValid(int i, int j, ChessPiece anotherPiece,
    BoardSquare sq[][]) {
+    Pawn p = (Pawn)anotherPiece;
     if(!isFirst){
-      int size = sq.length;
-      if(i - 2 > 0 || i - 1 > 0 || i+2 < size
-        || i+1 < size){
+      if((i == p.pos1-1 && j == p.pos2-1
+      || i == p.pos1-1 && j == p.pos2+1) ||
+      i == p.pos1+1 && j == p.pos2-1 ||
+      i == p.pos1+1 && j == p.pos2+1 ||
+      i == p.pos2-2 || i == p.pos1-1|| i+2 == p.pos1
+        || i+1 == p.pos1){
         return true;
       }
       isFirst = true;
     } else {
-      int size = sq.length;
-      if(i+2 < size || i+1 < size ||
-        i - 2 > 0 || i - 1 > 0 ){
+      if((i == p.pos1-1 && j == p.pos2-1
+      || i == p.pos1-1 && j == p.pos2+1) || i == p.pos1-1
+        || i+1 == p.pos1){
         return true;
       }
     }
@@ -46,10 +50,7 @@ class Pawn implements ChessPiece {
   }
   public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
     Pawn p = (Pawn)anotherPiece;
-    return i-1 == p.pos1 && j-1 == p.pos2
-    || i-1 == p.pos1 && j+1 == p.pos2 ||
-    i+1 == p.pos1 && j - 1 == p.pos2 ||
-    i+1 == p.pos1 && j+1 == p.pos2;
+    return i == p.pos1 && j == p.pos2;
   }
 }
 class Knight implements ChessPiece {
@@ -71,28 +72,28 @@ class Knight implements ChessPiece {
   public boolean isValid(int i, int j, ChessPiece anotherPiece,
   BoardSquare sq[][]) {
     Knight p = (Knight)anotherPiece;
-    if(j + 2 < sq[0].length && i+1 < sq.length){
+    if(p.pos2 + 2 == j && p.pos1+1 == i){
       return true;
     }
-    if(j + 2 < sq[0].length && i-1 >= 0){
+    if(p.pos2 + 2 == j && p.pos1-1 == i){
       return true;
     }
-    if(j - 1 >= 0 && i+2 < sq.length){
+    if(p.pos2 - 1 == j && p.pos1+2 == i){
       return true;
     }
-    if(j + 1 < sq[0].length && i-2 >= 0){
+    if(p.pos2 + 1 == j && p.pos1-2 == i){
       return true;
     }
-    if(j - 2 >= 0 && i+1 < sq.length){
+    if(p.pos2 - 2 == j && p.pos1+1 == i){
       return true;
     }
-    if(j - 2 >= 0 && i-1 >= 0){
+    if(p.pos2 - 2 == j && p.pos1-1 == i){
       return true;
     }
-    if(j - 1 >= 0 && i-2 >= 0){
+    if(p.pos2 - 1 == j && p.pos1-2 == i){
       return true;
     }
-    if(j + 1 < sq[0].length && i+2 < sq.length){
+    if(p.pos2 + 1 == j && p.pos1+2 == i){
       return true;
     }
     return false;
