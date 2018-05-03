@@ -5,7 +5,7 @@ interface ChessPiece {
   int j, BoardSquare sq[][], Player current, Player opponent);
   public boolean isValid(int i, int j, ChessPiece anotherPiece,
   BoardSquare sq[][]);
-  public boolean isOpponent(ChessPiece anotherPiece,
+  public boolean isOpponent(Player current, BoardSquare sq[][],
   int i, int j);
 }
 class Pawn implements ChessPiece {
@@ -19,8 +19,8 @@ class Pawn implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
-      if(isOpponent(anotherPiece, i, j)){
-        current.isPlayer1 = opponent.isPlayer1;
+      if(isOpponent(current, sq, i, j)){
+        current.isPlayer1 = !opponent.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
       isFirst = true;
@@ -48,9 +48,10 @@ class Pawn implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    Pawn p = (Pawn)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isOpponent(Player current,
+   BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 class Knight implements ChessPiece {
@@ -63,8 +64,8 @@ class Knight implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
-      if(isOpponent(anotherPiece, i, j)){
-        current.isPlayer1 = opponent.isPlayer1;
+      if(isOpponent(current, sq, i, j)){
+        current.isPlayer1 = !opponent.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
     }
@@ -98,9 +99,9 @@ class Knight implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    Knight p = (Knight)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isOpponent(Player current, BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 class Rook implements ChessPiece {
@@ -113,8 +114,8 @@ class Rook implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
-      if(isOpponent(anotherPiece, i, j)){
-        current.isPlayer1 = opponent.isPlayer1;
+      if(isOpponent(current, sq, i, j)){
+        current.isPlayer1 = !opponent.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
     }
@@ -127,9 +128,9 @@ class Rook implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    Rook p = (Rook)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isOpponent(Player current, BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 class Bishop implements ChessPiece {
@@ -142,8 +143,8 @@ class Bishop implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
-      if(isOpponent(anotherPiece, i, j)){
-        current.isPlayer1 = opponent.isPlayer1;
+      if(isOpponent(current, sq, i, j)){
+        current.isPlayer1 = !opponent.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
     }
@@ -159,9 +160,9 @@ class Bishop implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    Bishop p = (Bishop)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isOpponent(Player current, BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 class King implements ChessPiece {
@@ -174,8 +175,8 @@ class King implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
-      if(isOpponent(anotherPiece, i, j)){
-        opponent.isPlayer1 = current.isPlayer1;
+      if(isOpponent(current, sq, i, j)){
+        current.isPlayer1 = !opponent.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
     }
@@ -191,9 +192,12 @@ class King implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    King p = (King)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isDone(Player current, BoardSquare sq[][], int i, int j){
+    return isOpponent(current, sq, i, j);
+  }
+  public boolean isOpponent(Player current, BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 class Queen implements ChessPiece {
@@ -206,8 +210,8 @@ class Queen implements ChessPiece {
   public void moveTo(int i, ChessPiece anotherPiece,
   int j, BoardSquare sq[][], Player current, Player opponent){
    if(isValid(i,j, anotherPiece, sq)){
-     if(isOpponent(anotherPiece, i, j)){
-       current.isPlayer1 = opponent.isPlayer1;
+     if(isOpponent(current, sq, i, j)){
+       current.isPlayer1 = !opponent.isPlayer1;
      }
      sq[i][j].p = anotherPiece;
    }
@@ -224,9 +228,9 @@ class Queen implements ChessPiece {
     }
     return false;
   }
-  public boolean isOpponent(ChessPiece anotherPiece, int i, int j) {
-    Queen p = (Queen)anotherPiece;
-    return i == p.pos1 && j == p.pos2;
+  public boolean isOpponent(Player current, BoardSquare sq[][], int i, int j) {
+    return sq[i][j].p != null && (current.isPlayer1 && !sq[i][j].type
+     || (!current.isPlayer1 && sq[i][j].type));
   }
 }
 interface PlayerPiece {
@@ -272,7 +276,7 @@ class Player implements PlayerPiece {
         || j == 6) ? piece2[index2++] : i == 7 && (j == 2
         || j == 5) ? piece4[index3++]
         : (i == 7 &&  j == 3)? piece5 : piece6;
-        sq[i][j] = new BoardSquare(p);
+        sq[i][j] = new BoardSquare(p, type);
        }
       }
     } else {
@@ -290,7 +294,7 @@ class Player implements PlayerPiece {
         i == 0 && (j == 2
         || j == 5) ? piece4[index3++]
         : (i == 0 && j == 3) ? piece5 : piece6;
-        sq[i][j] = new BoardSquare(p);
+        sq[i][j] = new BoardSquare(p, type);
       }
      }
     }
@@ -305,6 +309,7 @@ class BoardSquare {
   private ChessPiece piece5  = new King();
   private ChessPiece piece6  = new Queen();
   public ChessPiece p;
+  public boolean type;
   BoardSquare(){
     for(int i = 0; i < 8; i++){
       piece1[i] = new Pawn();
@@ -319,8 +324,9 @@ class BoardSquare {
       piece4[i] = new Bishop();
     }
   }
-  BoardSquare(ChessPiece p){
+  BoardSquare(ChessPiece p, boolean type){
     this.p = p;
+    this.type = type;
   }
   void createBoardSquareInstance(){
     for(int i = 0; i < 8; i++){
