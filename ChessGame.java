@@ -171,7 +171,7 @@ class King implements ChessPiece {
   int j, BoardSquare sq[][], Player current, Player opponent){
     if(isValid(i,j, anotherPiece, sq)){
       if(isOpponent(anotherPiece, i, j)){
-        current.isPlayer1 = opponent.isPlayer1;
+        opponent.isPlayer1 = current.isPlayer1;
       }
       sq[i][j].p = anotherPiece;
     }
