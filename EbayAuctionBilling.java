@@ -1,6 +1,8 @@
 import java.util.*;
+import java.io.*;
+import java.net.*;
 interface Bidder {
-  public boolean isVerified(Bidder bidder);
+  public boolean isVerified();
   public Bidder createBidder(String name, String age, String sex,
   String email);
   public void setVerified(Bidder bidder);
@@ -10,16 +12,18 @@ interface Bidder {
   public void setMaximumBid(Bidder bidder,OnlineProducts product);
   public double getMaximumBid();
   public Bidder getMaxBidder();
+  public Bidder getBidder(String email);
   public boolean isValidBid(double bidPrice, OnlineProducts product);
 }
 interface Seller {
   public void verifyBidder(Bidder bidder);
   public void changeBid(OnlineProducts product, double price);
-  public void addBidders(Bidder bidder);
-  public LinkedList<Bidder> getBidders(Bidder bidder);
+  public void addBidders(Bidder bidder, OnlineProducts product);
+  public LinkedList<Bidder> getBidders(OnlineProducts product);
 }
 interface Conversion {
-  public void convertAmountToCurrency(Bidder bidder, OnlineProducts prod);
+  public void setAmountToCurrency(Bidder bidder, OnlineProducts prod);
+  public double getCurrency();
 }
 interface Product {
   public OnlineProducts getProduct(OnlineProducts product);
@@ -27,7 +31,7 @@ interface Product {
   public double getReservedPrice();
   public void setReservedPrice(double bidPrice);
 }
-class IndianBidder implements Bidder {
+class IndianBidder implements Bidder,Serializable {
   private int ID;
   public String email;
   private String name;
@@ -36,9 +40,8 @@ class IndianBidder implements Bidder {
   private boolean isVerified;
   private double bidPrice;
   private static IndianBidder maxBidder = null;
-  private HashMap<String, IndianBidder>map2;
+  private static Hashtable<String, IndianBidder> map2 = new Hashtable<String, IndianBidder>();
   IndianBidder(){
-    map2 = new HashMap<String, IndianBidder>();
   }
   IndianBidder(String name, String age, String sex,
    String email){
@@ -47,9 +50,8 @@ class IndianBidder implements Bidder {
      this.age = age;
      this.name = name;
   }
-  public boolean isVerified(Bidder bidder) {
-    IndianBidder bidd = (IndianBidder)bidder;
-    return bidd.isVerified;
+  public boolean isVerified() {
+    return this.isVerified;
   }
   public void setVerified(Bidder bidder) {
     IndianBidder bidd = (IndianBidder)bidder;
@@ -61,6 +63,9 @@ class IndianBidder implements Bidder {
        map2.put(email, new IndianBidder(name,age,sex,email));
      }
      return (IndianBidder)map2.get(email);
+  }
+  public Bidder getBidder(String email) {
+    return (IndianBidder)map2.get(email);
   }
   public void setBid(OnlineProducts product, double bidPrice) {
     OnlineProducts produ = product.getProduct(product);
@@ -100,50 +105,52 @@ class IndianBidder implements Bidder {
   }
 }
 class IndianSeller implements Seller {
-  HashMap<String, LinkedList<Bidder>> bidders;
+  private static Hashtable<String, LinkedList<Bidder>> bidders = new Hashtable<String, LinkedList<Bidder>>();
   IndianSeller(){
-    bidders = new HashMap<String, LinkedList<Bidder>>();
   }
   public void verifyBidder(Bidder bidder) {
     IndianBidder bidd = (IndianBidder)bidder;
     bidd.setVerified(bidd);
   }
-  public LinkedList<Bidder> getBidders(Bidder bidder){
-    IndianBidder bidd = (IndianBidder)bidder;
-    return bidders.get(bidd.getEmail());
+  public LinkedList<Bidder> getBidders(OnlineProducts product){
+    return bidders.get(product.productName);
   }
   public void changeBid(OnlineProducts product, double price) {
     product.setReservedPrice(price);
   }
-  public void addBidders(Bidder bidder) {
-    LinkedList<Bidder> bdrs = null;
+  public void addBidders(Bidder bidder, OnlineProducts product) {
     IndianBidder bidd = (IndianBidder)bidder;
-    if(!bidders.containsKey(bidd.getEmail())){
+    LinkedList<Bidder> bdrs = null;
+    if(!bidders.containsKey(product.productName)){
       bdrs = new LinkedList<Bidder>();
       bdrs.add(bidd);
-      bidders.put(bidd.getEmail(), bdrs);
+      bidders.put(product.productName, bdrs);
     } else {
-      bdrs = bidders.get(bidd.getEmail());
+      bdrs = bidders.get(product.productName);
       bdrs.add(bidd);
-      bidders.put(bidd.getEmail(), bdrs);
+      bidders.put(product.productName, bdrs);
     }
   }
 }
-class IndianConversion implements Conversion {
+class IndianConversion implements Conversion, Serializable {
   private final double conversionUnit = 1.00;
   private final double dollarUnit = 1.0;
   private final double inrUnit = 45.0;
-  public void convertAmountToCurrency(Bidder bidder, OnlineProducts prod) {
+  private static double convertedAmount = 0.00;
+  public void setAmountToCurrency(Bidder bidder, OnlineProducts prod) {
     IndianBidder bidd = (IndianBidder)bidder;
-    bidd.setBid(prod, bidd.getBid());
+    bidd.setBid(prod, (bidd.getBid()) * (dollarUnit/inrUnit));
+  }
+  public double getCurrency(){
+    return this.convertedAmount;
   }
 }
-class OnlineProducts implements Product {
+class OnlineProducts implements Product,Serializable {
   public String productName;
   public String productCategory;
   public double price;
   private double reservedPrice;
-  private static HashMap<String, HashMap<String, OnlineProducts>> map2 = new HashMap<String, HashMap<String, OnlineProducts>>();
+  private static Hashtable<String, HashMap<String, OnlineProducts>> map2 = new Hashtable<String, HashMap<String, OnlineProducts>>();
   OnlineProducts(){
   }
   OnlineProducts(String ProductName, String productCategory,
@@ -179,19 +186,105 @@ class OnlineProducts implements Product {
     }
   }
 }
+class eBayClient extends Thread {
+  private static IndianBidder bid = null;
+  OnlineProducts pro;
+  private static OnlineProducts prInstance = null;
+  private IndianBidder maxBidder = null;
+  private ObjectInputStream oin;
+  private ObjectOutputStream oOut;
+  private Socket sock;
+  eBayClient(String host, int port, OnlineProducts pro) throws ClassNotFoundException,
+  IOException {
+    sock = new Socket(host, port);
+    oin = new ObjectInputStream(sock.getInputStream());
+    oOut = new ObjectOutputStream(sock.getOutputStream());
+    this.prInstance = new OnlineProducts();
+    prInstance.addProducts(pro);
+    this.pro = pro;
+    this.bid = new IndianBidder();
+    startBid();
+  }
+  public void startBid() throws ClassNotFoundException,IOException {
+    start();
+  }
+  public void run(){
+    Scanner sc = new Scanner(System.in);
+    try {
+      while(true){
+        System.out.println(" Do you want to bid (y/b/n)");
+        String t1 = sc.next();
+        if(t1.charAt(0) == 'y'){
+          System.out.println(" Enter bidders email ");
+          String em = sc.next();
+          System.out.println(" Enter bidders name ");
+          String nm = sc.next();
+          System.out.println(" Enter bidders age ");
+          String am = sc.next();
+          System.out.println(" Enter bidders sex ");
+          String sm = sc.next();
+          IndianBidder bid3 = (IndianBidder)this.bid.createBidder(nm,am,sm,em);
+          System.out.println(" Enter the amount for bid ");
+          Double d1 = (double)sc.nextDouble();
+          bid3.setBid(this.pro, d1);
+          System.out.println(" Bidder with email "+bid3.getEmail()+" is added ");
+          oOut.writeObject(bid3);
+        } else if(t1.charAt(0) == 'b'){
+          System.out.println(" Enter your email ");
+          String em = sc.next();
+          IndianBidder bid3 = (IndianBidder)this.bid.getBidder(em);
+          if(bid3 != null){
+            System.out.println(" Enter the amount for bid ");
+            Double d1 = (double)sc.nextDouble();
+            bid3.setBid(this.pro, d1);
+            oOut.writeObject(bid3);
+          }
+        } else {
+          IndianBidder bid4 = (IndianBidder)oin.readObject();
+          System.out.println(" The Amount to be paid for the Auction is "+
+          bid4.getBid()+" by "+bid4.getEmail()+" ");
+          break;
+        }
+        Object oinTemp = oin.readObject();
+        if(oinTemp != null && oinTemp instanceof OnlineProducts){
+          this.pro = (OnlineProducts)oinTemp;
+        }
+      }
+    } catch(IOException ie){
+      System.out.println(ie);
+    } catch(ClassNotFoundException ce){
+      System.out.println(ce);
+    }
+  }
+}
 public class EbayAuctionBilling {
-  public static void main(String args[]){
-    OnlineProducts prod = new OnlineProducts();
-    OnlineProducts prod1 = new OnlineProducts("iPhone6S","Mobile",1234.78,230.87);
-    prod.addProducts((OnlineProducts)prod1);
-    IndianBidder bidd = new IndianBidder();
-    IndianBidder bid1 = (IndianBidder)bidd.createBidder("Rupesh","21","M","srupesh51@gmail.com");
-    bid1.setBid(prod1,1000.74);
-    IndianBidder bid2 = (IndianBidder)bidd.createBidder("RupeshRaj","22","M","srupesh52@gmail.com");
-    bid2.setBid(prod1,1050.74);
-    bidd.setMaximumBid(bid2,prod1);
-    IndianConversion conv = new IndianConversion();
-    IndianBidder maxB = (IndianBidder)bidd.getMaxBidder();
-    conv.convertAmountToCurrency(maxB, prod1);
+  public static void main(String args[]) throws Exception {
+    if(args.length == 0){
+      System.out.println("Please specify Server host");
+      return;
+    }
+    if(args.length == 1){
+      System.out.println("Please specify Server port");
+      return;
+    }
+    if(args.length == 2){
+      System.out.println("Please specify Product Name ");
+      return;
+    }
+    if(args.length == 3){
+      System.out.println("Please specify Product Category ");
+      return;
+    }
+    if(args.length == 4){
+      System.out.println("Please specify Product price ");
+      return;
+    }
+    if(args.length == 5){
+      System.out.println("Please specify Product ReservedPrice ");
+      return;
+    }
+    new eBayClient(args[0], Integer.parseInt(args[1]),
+    new OnlineProducts(args[2], args[3],Double.valueOf(args[4]),
+    Double.valueOf(args[5])));
   }
 }
