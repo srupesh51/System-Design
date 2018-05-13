@@ -369,8 +369,8 @@ class User {
     }
     userSize = map.size();
   }
-  public ATMCard getCard(User user){
-    BankAccount accou = this.getAccount(user);
+  public ATMCard getCard(User user, ACCOUNTS a1){
+    BankAccount accou = this.getAccount(user, a1);
     if(accou == null){
       return null;
     }
@@ -385,9 +385,15 @@ class User {
     if(acc != null){
       if(!acc.isValidCustomerID(acc.getCustomerID())) {
         acc.createAccount(user);
-        account1 = new LinkedList<BankAccount>();
-        account1.add(acc.getAccount());
-        account.put(user.getUserID(), account1);
+        if(!account.containsKey(user.getUserID())){
+          account1 = new LinkedList<BankAccount>();
+          account1.add(acc.getAccount());
+          account.put(user.getUserID(), account1);
+        } else {
+          account1 = account.get(user.getUserID());
+          account1.add(acc.getAccount());
+          account.put(user.getUserID(), account1);
+        }
       }
     }
   }
@@ -438,7 +444,7 @@ class User {
       }
     }
   }
-  public BankAccount getAccount(User user){
+  public BankAccount getAccount(User user, ACCOUNTS a2){
     if(!user.isValidUser(user.getUserID())){
       return null;
     }
@@ -446,13 +452,11 @@ class User {
     int index = -1;
     for(int i = 0; i < account1.size(); i++){
         BankAccount acct = account1.get(i);
-        if(acct.isValidCustomerID(account1.get(i).getCustomerID())){
-          BankAccount acc = accFactory.accountFactory(acct);
-          if(acc == null){
+        if(a2 == ACCOUNTS.SAVINGS || a2 == ACCOUNTS.CURRENT){
+          if(acct instanceof SavingsAccount || acct instanceof CurrentAccount){
             break;
           }
           index = i;
-          break;
         }
      }
      if(index != -1){
@@ -600,7 +604,10 @@ class ATMMachine {
   public void setBankAccount(BankAccount acc){
     this.acct = fac.accountFactory(acc);
   }
-  public void withdraw(ATMCard card, double amount){
+  public BankAccount getBankAccount(){
+    return this.acct;
+  }
+  public void withdraw(double amount){
     this.acct.withdraw(amount);
   }
   public void performTransaction(UserFactory u){
@@ -612,41 +619,31 @@ class ATMMachine {
       return;
     }
     while(true) {
-      System.out.println(" -- Enter your userID -- ");
+      System.out.println(" -- Enter your user ID -- ");
       int userID = sc.nextInt();
       System.out.println(" -- Enter the pin Number -- ");
       int pinNumber = sc.nextInt();
-      instance = u.getUserCard(userID);
+      ACCOUNTS a1 = ACCOUNTS.CURRENT;
+      System.out.println(" -- Enter the Account (s/c) (Savings/Current) -- ");
+      char a = sc.next().charAt(0);
+      if(a == 's'){
+        a1 = ACCOUNTS.SAVINGS;
+      }
+      instance = u.getUserCard(userID, a1);
       if(!instance.isValid(pinNumber)){
         System.out.println(" Please enter a valid ATM PIN ");
         break;
       }
-      System.out.println(" -- Enter the account(Savings(s)/Current(c))Account -- ");
-      char s1 = sc.next().charAt(0);
-      BankAccount acc = null;
-      if(s1 != 'c' && s1 != 's'){
-        break;
-      }
-      if(s1 == 'c'){
-        acc = fac.accountFactory(new CurrentAccount());
-      } else if(s1 == 's'){
-        acc = fac.accountFactory(new SavingsAccount());
-      }
+      BankAccount acc = u.getAccount(userID, a1);
+      this.setBankAccount(acc);
       System.out.println(" -- Enter the amount to be withdrawn -- ");
       double n = sc.nextDouble();
+      this.withdraw(n);
       System.out.println(" -- Do you want to continue (y/n) -- ");
       choice = sc.next().charAt(0);
       if(choice != 'y'){
         break;
       }
-      System.out.println(" -- Enter the card(Credit/Debit Card) -- ");
-      String c = sc.next();
-      if(c.equals("Credit")){
-        instance = fac1.cardFactory(new CreditCard());
-      } else {
-        instance = fac1.cardFactory(new DebitCard());
-      }
-      this.withdraw(instance, n);
     }
   }
 }
@@ -674,19 +671,26 @@ class UserFactory {
     user.createUser(u.getFirstName(), u.getLastName(),
     u.getEmail(), u.getPhoneNumber());
   }
-  public void createAccount(int userID, BankAccount acct){
-    if(!user.isValidUser(userID)){
+  public void createAccount(User user, BankAccount acct){
+    if(!user.isValidUser(user.getUserID())){
       return;
     }
-    User u1 = user.getUser(userID);
+    User u1 = user.getUser(user.getUserID());
     user.createAccount(u1, acct);
   }
-  public ATMCard getUserCard(int userID){
+  public BankAccount getAccount(int userID, ACCOUNTS a2){
+    if(!user.isValidUser(user.getUserID())){
+      return null;
+    }
+    User u1 = user.getUser(userID);
+    return user.getAccount(u1, a2);
+  }
+  public ATMCard getUserCard(int userID, ACCOUNTS a1){
     User u1 = user.getUser(userID);
     if(u1 == null){
       return null;
     }
-    return user.getCard(u1);
+    return user.getCard(u1, a1);
   }
   public void createCard(int userID, BankAccount acc, String bankName,
     String bankAddress, String cardName, String cardType, String startDate, String endDate){
@@ -723,7 +727,7 @@ class UserFactory {
       }
       if(c2 == 'c'){
         acc = fac.accountFactory(new CurrentAccount());
-        this.createAccount(u1.getUserID(),acc);
+        this.createAccount(u1,acc);
         System.out.println(" -- Enter bankName -- ");
         String s11 = sc.next();
         System.out.println(" -- Enter bankAddress -- ");
@@ -739,7 +743,7 @@ class UserFactory {
         this.createCard(u1.getUserID(), acc, s11, s21, s31, s24,s25,s26);
       } else if(c2 == 's'){
         acc = fac.accountFactory(new SavingsAccount());
-        this.createAccount(u1.getUserID(),acc);
+        this.createAccount(u1,acc);
         System.out.println(" -- Enter bankName -- ");
         String s11 = sc.next();
         System.out.println(" -- Enter bankAddress -- ");
@@ -761,6 +765,19 @@ class UserFactory {
       }
     }
   }
+}
+enum ACCOUNTS {
+  CURRENT {
+      public String getDescription() {
+          return "CURRENT";
+      }
+  },
+  SAVINGS {
+      public String getDescription() {
+          return "SAVINGS";
+      }
+  };
+  public abstract String getDescription();
 }
 public class onlineATM {
   public static void main(String args[]){
