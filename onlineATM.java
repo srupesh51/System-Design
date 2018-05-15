@@ -1,6 +1,6 @@
 import java.util.*;
 import java.security.*;
-enum CARDS {
+enum CARDSUITE {
   CREDIT {
       public String getDescription() {
           return "CREDIT";
@@ -16,12 +16,12 @@ enum CARDS {
 enum TRANSACTION {
   DEPOSIT {
       public String getDescription() {
-          return "DEPOSITED";
+          return "CREDIT";
       }
   },
   WITHDRAW {
       public String getDescription() {
-          return "WITHDRAWN";
+          return "DEBIT";
       }
   };
   public abstract String getDescription();
@@ -48,12 +48,12 @@ class Bank {
   private String zipCode;
   private User user;
   private LinkedList<User> userList = null;
-  private LinkedList<Account> acctList = null;
-  private LinkedList<cards> cardList = null;
+  private HashMap<Integer,LinkedList<Account>> acctList = null;
+  private HashMap<Integer,LinkedList<cards>> cardList = null;
   Bank(){
     userList = new LinkedList<User>();
-    acctList = new LinkedList<Account>();
-    cardList = new LinkedList<cards>();
+    acctList = new HashMap<Integer,LinkedList<Account>>();
+    cardList = new HashMap<Integer,LinkedList<cards>>();
   }
   Bank(String bankName, String bankAddress, String city, String state,
    String country, String zipCode){
@@ -67,18 +67,42 @@ class Bank {
   public void createUser(String email,
     String name){
      this.user = new User(email,name);
+     System.out.println(" -- your Customer ID ---  "+this.user.getCustomerID());
      userList.add(user);
   }
   public void createAccount(String bankName, String bankAddress, String city, String state,
-   String country, String zipCode, ACCOUNTS a){
-     Account a1 = new Account(bankName, bankAddress, city, state, country,
-     zipCode, a);
-     this.acctList.add(a1);
+   String country, String zipCode){
+     User currentUser = this.getUser();
+     ACCOUNTS all[] = {ACCOUNTS.CURRENT, ACCOUNTS.SAVINGS};
+     for(int  i = 0; i < all.length; i++){
+       Account a1 = new Account(bankName, bankAddress, city, state, country,
+       zipCode, all[i]);
+       LinkedList<Account> acc = null;
+       if(!this.acctList.containsKey(currentUser.getCustomerID())){
+         acc = new LinkedList<Account>();
+         acc.add(a1);
+         this.acctList.put(currentUser.getCustomerID(), acc);
+       } else {
+         acc = this.acctList.get(currentUser.getCustomerID());
+         acc.add(a1);
+         this.acctList.put(currentUser.getCustomerID(), acc);
+       }
+    }
   }
   public void createCard(String cardHolder, String cardType,
-  String startDate, String endDate, CARDS c){
+  String startDate, String endDate, CARDSUITE c){
     cards c4 = new cards(cardHolder,cardType,startDate, endDate, c);
-    this.cardList.add(c4);
+    User currentUser = this.getUser();
+    LinkedList<cards> card = null;
+    if(!this.cardList.containsKey(currentUser.getCustomerID())){
+      card = new LinkedList<cards>();
+      card.add(c4);
+      this.cardList.put(currentUser.getCustomerID(), card);
+    } else {
+      card = this.cardList.get(currentUser.getCustomerID());
+      card.add(c4);
+      this.cardList.put(currentUser.getCustomerID(), card);
+    }
   }
   public User getUser(){
     return this.user;
@@ -86,11 +110,11 @@ class Bank {
   public LinkedList<User> getUserList(){
     return this.userList;
   }
-  public LinkedList<Account> getAccountList(){
-    return this.acctList;
+  public LinkedList<Account> getAccountList(int customerID){
+    return this.acctList.containsKey(customerID)? this.acctList.get(customerID) : null;
   }
-  public LinkedList<cards> getCardList(){
-    return this.cardList;
+  public LinkedList<cards> getCardList(int customerID){
+    return this.cardList.containsKey(customerID)? this.cardList.get(customerID) : null;
   }
   public String getBankName() {
     return this.bankName;
@@ -116,7 +140,7 @@ class Account {
   private double balance;
   private Bank bank;
   private ACCOUNTS a;
-  private static LinkedList<String> lis = new LinkedList<String>();
+  private static HashMap<Integer,LinkedList<String>> lis = new HashMap<Integer,LinkedList<String>>();
   Account(){
   }
   Account(String bankName, String bankAddress,
@@ -132,11 +156,26 @@ class Account {
     this.balance += amount;
     this.addBalanceStatement(amount, TRANSACTION.DEPOSIT);
   }
-  public LinkedList<String> getBalanceStatement(){
-    return lis;
+  public void getBalanceStatement(int accountNumber){
+    if(!lis.containsKey(accountNumber)){
+      return;
+    }
+    LinkedList<String> str = lis.get(accountNumber);
+    for(int i = 0; i < str.size(); i++){
+      System.out.println(str.get(i)+" ");
+    }
   }
   public void addBalanceStatement(double balance, TRANSACTION d){
-    lis.add(" You made a "+d.getDescription()+" of "+balance+" into "+this.getAccountCategory());
+    LinkedList<String> st = null;
+    if(!lis.containsKey(this.getAccountNumber())){
+      st = new LinkedList<String>();
+      st.add(" You made a "+d.getDescription()+" of "+balance+" into "+this.getAccountCategory()+" on "+this.getAccountNumber()+" ");
+      lis.put(this.getAccountNumber(), st);
+    } else {
+      st = lis.get(this.getAccountNumber());
+      st.add(" You made a "+d.getDescription()+" of "+balance+" into "+this.getAccountCategory()+" on "+this.getAccountNumber()+" ");
+      lis.put(this.getAccountNumber(), st);
+    }
   }
   public void withdraw(double amount){
     if(this.balance < amount){
@@ -165,7 +204,7 @@ class Account {
   }
 }
 class cards {
-  private CARDS card;
+  private CARDSUITE card;
   private int PIN;
   private int cardNumber;
   private String cardHolder;
@@ -173,11 +212,12 @@ class cards {
   private String startDate;
   private String endDate;
   cards(String cardHolder, String cardType,
-  String startDate, String endDate, CARDS c){
+  String startDate, String endDate, CARDSUITE c){
     SecureRandom sc = new SecureRandom();
     this.cardNumber = sc.nextInt(99999999)+sc.nextInt(99999999)+sc.nextInt(99999999)+sc.nextInt(99999999)+
     sc.nextInt(99999999)+sc.nextInt(99999999)+sc.nextInt(99999999)+sc.nextInt(99999999)+1;
     this.PIN = sc.nextInt(9999)+1;
+    System.out.println(" -- ATM PIN --- "+this.PIN);
     this.cardType = cardType;
     this.cardHolder = cardHolder;
     this.startDate = startDate;
@@ -225,18 +265,138 @@ class User {
 class TransactionFactory {
   private static Bank bankInstance = new Bank();
   TransactionFactory(){}
-  public boolean isValid(User user, int customerID){
-    return user.getCustomerID() == customerID;
+  public void createUsers(){
+    System.out.println(" Enter your choice (y/n) ");
+    Scanner sc = new Scanner(System.in);
+    String ch = sc.next();
+    char choice = ch.charAt(0);
+    if(choice != 'y'){
+      return;
+    }
+    while(choice == 'y'){
+      System.out.println(" Enter your name ");
+      String name = sc.next();
+      System.out.println(" Enter your email ");
+      String email = sc.next();
+      bankInstance.createUser(name,email);
+      System.out.println(" Enter your bank name ");
+      String bankName = sc.next();
+      System.out.println(" Enter your bank address ");
+      String bankAddress = sc.next();
+      System.out.println(" Enter your bank city ");
+      String bankCity = sc.next();
+      System.out.println(" Enter your bank state ");
+      String bankState = sc.next();
+      System.out.println(" Enter your bank country ");
+      String bankCountry = sc.next();
+      System.out.println(" Enter your bank Zip Code ");
+      String bankZipCode = sc.next();
+      bankInstance.createAccount(bankName,bankAddress,bankCity,bankState,
+      bankCountry,bankZipCode);
+      System.out.println(" Enter your card Holder ");
+      String cardHolder = sc.next();
+      System.out.println(" Enter your card type ");
+      String cardType = sc.next();
+      System.out.println(" Enter your card start Date ");
+      String cardStartDate = sc.next();
+      System.out.println(" Enter your card end Date ");
+      String cardEndDate = sc.next();
+      System.out.println(" Enter your Credit Card(Credit/Debit)(c/d) ");
+      ch = sc.next();
+      choice = ch.charAt(0);
+      if(choice != 'c' && choice != 'd'){
+        break;
+      }
+      CARDSUITE c2 = choice == 'c' ? CARDSUITE.CREDIT : CARDSUITE.DEBIT;
+      bankInstance.createCard(cardHolder, cardType, cardStartDate, cardEndDate, c2);
+      User currentUser = bankInstance.getUser();
+      LinkedList<Account> lis = bankInstance.getAccountList(currentUser.getCustomerID());
+      if(lis == null){
+        break;
+      }
+      for(int i = 0; i < lis.size(); i++){
+        Account acc = lis.get(i);
+        acc.deposit(5000);
+        acc.getBalanceStatement(acc.getAccountNumber());
+        System.out.println(" Your current Account Balance "+acc.getBalance()+" ");
+      }
+      System.out.println(" Enter your choice (y/n) ");
+      ch = sc.next();
+      choice = ch.charAt(0);
+    }
   }
-  public boolean isValid(Account acc, int accountNumber){
-    return acc.getAccountNumber() == accountNumber;
-  }
-  public boolean isValid(cards card, int pin){
-    return card.getPIN() == pin;
+  public void performTransaction(){
+    System.out.println(" Enter your choice (y/n) ");
+    Scanner sc = new Scanner(System.in);
+    String ch = sc.next();
+    char choice = ch.charAt(0);
+    if(choice != 'y'){
+      return;
+    }
+    while(choice == 'y'){
+      System.out.println(" Enter your customer ID ");
+      int customerID = sc.nextInt();
+      LinkedList<User> userList = bankInstance.getUserList();
+      if(userList == null){
+        break;
+      }
+      User currentUser = null;
+      boolean flag = false;
+      for(int i = 0; i < userList.size(); i++){
+        currentUser = userList.get(i);
+        if(currentUser.getCustomerID() == customerID){
+          flag = true;
+          break;
+        }
+      }
+      if(!flag){
+        break;
+      }
+      System.out.println(" Enter your ATM PIN ");
+      int pin = sc.nextInt();
+      LinkedList<cards> cardList = bankInstance.getCardList(customerID);
+      if(cardList == null){
+        break;
+      }
+      cards currentUserCard = null;
+      flag = false;
+      for(int i = 0; i < cardList.size(); i++){
+        currentUserCard = cardList.get(i);
+        if(currentUserCard.getPIN() == pin){
+          flag = true;
+          break;
+        }
+      }
+      if(!flag){
+        break;
+      }
+      LinkedList<Account> accountList = bankInstance.getAccountList(customerID);
+      if(accountList == null){
+        break;
+      }
+      for(int i = 0; i < accountList.size(); i++){
+        Account currentUserAccount = accountList.get(i);
+        System.out.println(" WITHDRAW from "+currentUserAccount.getAccountCategory()+" (y / n) ");
+        ch = sc.next();
+        choice = ch.charAt(0);
+        if(choice == 'y'){
+          System.out.println(" Enter the amount to be withdrawn ");
+          double amt = sc.nextDouble();
+          currentUserAccount.withdraw(amt);
+          System.out.println(" Your current Account Balance "+currentUserAccount.getBalance()+" ");
+        }
+        currentUserAccount.getBalanceStatement(currentUserAccount.getAccountNumber());
+      }
+      System.out.println(" Enter your choice (y/n) ");
+      ch = sc.next();
+      choice = ch.charAt(0);
+    }
   }
 }
 public class onlineATM {
   public static void main(String args[]){
     TransactionFactory tf = new TransactionFactory();
+    tf.createUsers();
+    tf.performTransaction();
   }
 }
