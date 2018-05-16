@@ -64,72 +64,52 @@ class User {
     } else {
       fl = this.pictures.get(user.getEmail());
       fl.add(new Picture(user, pic));
-      this.pictures.put(this.getEmail(), fl);
+      this.pictures.put(user.getEmail(), fl);
     }
   }
   public void removePicture(User user, String pic){
+    LinkedList<Picture> fl = null;
     if(!this.pictures.containsKey(user.getEmail())){
-      return;
+       return;
     } else {
-      LinkedList<Picture> pics = this.pictures.get(user.getEmail());
-      for(int i = 0; i < pics.size(); i++){
-        Picture pic1 = pics.get(i);
-        if(pic1.pictureName == pic){
-          pics.remove(i);
-          break;
+      fl = this.pictures.get(user.getEmail());
+      for(int i = 0; i < fl.size(); i++){
+        Picture p1 = fl.get(i);
+        if(p1.pictureName == pic){
+          fl.remove(i);
         }
       }
-      this.pictures.put(user.getEmail(), pics);
+      this.pictures.put(user.getEmail(), fl);
     }
   }
   public void addPicture(User user, User u2, String pic,
   boolean visited[], int i){
     visited[i] = true;
     LinkedList<Picture> fl = null;
-    if(!this.pictures.containsKey(user.getEmail())){
+    if(!this.pictures.containsKey(u2.getEmail())){
       fl = new LinkedList<Picture>();
       fl.add(new Picture(u2, pic));
-      this.pictures.put(user.getEmail(), fl);
+      this.pictures.put(u2.getEmail(), fl);
     } else {
-      fl = this.pictures.get(user.getEmail());
+      fl = this.pictures.get(u2.getEmail());
       fl.add(new Picture(u2, pic));
-      this.pictures.put(this.getEmail(), fl);
-    }
-    if(this.friends.containsKey(u2.getEmail())){
-      LinkedList<Friend> fl1 = this.friends.get(u2.getEmail());
-      for(int j = 0; j < fl1.size(); j++){
-        User u1 = fl1.get(j).getFriend();
-        if(!visited[j]){
-          this.addPicture(user,u1,pic,visited,j);
-        }
-      }
+      this.pictures.put(u2.getEmail(), fl);
     }
   }
   public void removePicture(User user, User u3, String pic,
   boolean visited[], int i){
     visited[i] = true;
-    if(!this.pictures.containsKey(user.getEmail())){
+    if(!this.pictures.containsKey(u3.getEmail())){
       return;
     } else {
-      LinkedList<Picture> picturesList = this.pictures.get(user.getEmail());
+      LinkedList<Picture> picturesList = this.pictures.get(u3.getEmail());
       for(int k = 0; k < picturesList.size(); k++){
         Picture p = picturesList.get(k);
         if(p.pictureName == pic){
           picturesList.remove(k);
         }
       }
-      this.pictures.put(user.getEmail(), picturesList);
-    }
-    if(!this.friends.containsKey(user.getEmail())){
-      return;
-    } else {
-    LinkedList<Friend> fl = this.friends.get(user.getEmail());
-    for(int j = 0; j < fl.size(); j++){
-        User u1 = fl.get(j).getFriend();
-        if(!visited[j]){
-          this.removePicture(user,u1,pic,visited,j);
-        }
-      }
+      this.pictures.put(u3.getEmail(), picturesList);
     }
   }
 }
@@ -175,7 +155,7 @@ class InstagramSystem {
     userInstance.removeFriend(curr,u);
   }
   public void addPicture(User user, String pic){
-    userInstance.addPicture(user,pic);
+    userInstance.addPicture(user, pic);
     if(userInstance.getFriends(user.getEmail()) == null){
       return;
     }
