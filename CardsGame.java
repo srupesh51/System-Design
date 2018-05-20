@@ -229,13 +229,19 @@ public class CardsGame {
   }
   public void takeAnotherPlayerCard(int i, cards src[], cards dest[]){
     int j = i+1;
-    if(j > src.length){
-      return;
+    if(j < src.length){
+      if(Math.abs(src[j].getCardNum() - dest[i].getCardNum()) ==  1){
+        src[i] = dest[i];
+        return;
+      }
     }
-    if(Math.abs(src[j].getCardNum() - dest[i].getCardNum()) > 1){
-      return;
+    j = i - 1;
+    if(j >= 0){
+      if(Math.abs(src[j].getCardNum() - dest[i].getCardNum()) > 1){
+        src[i] = dest[i];
+        return;
+      }
     }
-    src[i] = dest[i];
   }
   public void display(){
     for(int i = 0; i < this.player1Cards.length; i++){
