@@ -24,12 +24,39 @@ class Directory implements FileComponent {
     return Files;
   }
   public void addFile(FileComponent fObj){
+    if(Files.size() == 0){
       Files.add((leafFile)fObj);
-      Collections.sort(Files, new Comparator<leafFile>(){
-          public int compare(leafFile f1, leafFile f2){
-            return f1.getName().compareTo(f2.getName());
-          }
-      });
+      return;
+    }
+    int i = 0;
+    leafFile f1 = (leafFile)fObj;
+    LinkedList<leafFile> tmp1 = new LinkedList<leafFile>();
+    leafFile tmp2 = null;
+    int start = -1;
+    while(i < Files.size()){
+      if(Files.get(i).getName().compareTo(f1.getName()) < 0){
+      } else {
+        if(tmp2 == null){
+          tmp2 = f1;
+        }
+        if(start == -1){
+          start = i;
+        }
+        tmp1.add(Files.get(i));
+      }
+      i++;
+    }
+    if(tmp2 == null){
+      Files.add(f1);
+      return;
+    }
+    Files.subList(start, Files.size()).clear();
+    Files.add(tmp2);
+    i = 0;
+    while(i < tmp1.size()){
+      Files.add(tmp1.get(i));
+      i++;
+    }
   }
   public void removeFile(int i){
     Files.remove(i);
@@ -49,12 +76,39 @@ class OnlineDocs {
   private LinkedList<leafFile> Files = new LinkedList<leafFile>();
   private LinkedList<Directory> Directories = new LinkedList<Directory>();
   public void addDir(String dirName){
+    if(Directories.size() == 0){
       Directories.add(new Directory(dirName));
-      Collections.sort(Directories, new Comparator<Directory>(){
-          public int compare(Directory f1, Directory f2){
-            return f1.getName().compareTo(f2.getName());
-          }
-      });
+      return;
+    }
+    int i = 0;
+    Directory f1 = new Directory(dirName);
+    LinkedList<Directory> tmp1 = new LinkedList<Directory>();
+    Directory tmp2 = null;
+    int start = -1;
+    while(i < Directories.size()){
+      if(Directories.get(i).getName().compareTo(f1.getName()) < 0){
+      } else {
+        if(tmp2 == null){
+          tmp2 = f1;
+        }
+        if(start == -1){
+          start = i;
+        }
+        tmp1.add(Directories.get(i));
+      }
+      i++;
+    }
+    if(tmp2 == null){
+      Directories.add(f1);
+      return;
+    }
+    Directories.subList(start, Directories.size()).clear();
+    Directories.add(tmp2);
+    i = 0;
+    while(i < tmp1.size()){
+      Directories.add(tmp1.get(i));
+      i++;
+    }
   }
   public void addFileToDir(String dirName, String file){
     int dirIndex = searchDirectory(Directories,dirName);
@@ -73,7 +127,8 @@ class OnlineDocs {
     if(dirIndex == -1){
       return;
     }
-    int fileIndex = searchFile(Directories.get(dirIndex).getFiles(),file);
+    LinkedList<leafFile> fList = Directories.get(dirIndex).getFiles();
+    int fileIndex = searchFile(fList,file);
     if(fileIndex == -1){
       return;
     }
@@ -81,11 +136,11 @@ class OnlineDocs {
     if(destIndex == -1){
       return;
     }
+    Directory destDirObj = Directories.get(destIndex);
+    leafFile fileComp = fList.get(fileIndex);
+    destDirObj.addFile(fileComp);
     Directory currentDir = Directories.get(dirIndex);
     currentDir.removeFile(fileIndex);
-    Directory destDirObj = Directories.get(destIndex);
-    leafFile fileComp = Files.get(fileIndex);
-    destDirObj.addFile(fileComp);
   }
   public void removeFileFromDir(String dirName, String file){
     int dirIndex = searchDirectory(Directories,dirName);
@@ -107,12 +162,39 @@ class OnlineDocs {
     Files.remove(fileIndex);
   }
   public void addFile(String file){
-      Files.add(new leafFile(file));
-      Collections.sort(Files, new Comparator<leafFile>(){
-          public int compare(leafFile f1, leafFile f2){
-            return f1.getName().compareTo(f2.getName());
+     if(Files.size() == 0){
+        Files.add(new leafFile(file));
+        return;
+      }
+      int i = 0;
+      leafFile f1 = new leafFile(file);
+      LinkedList<leafFile> tmp1 = new LinkedList<leafFile>();
+      leafFile tmp2 = null;
+      int start = -1;
+      while(i < Files.size()){
+        if(Files.get(i).getName().compareTo(f1.getName()) < 0){
+        } else {
+          if(tmp2 == null){
+            tmp2 = f1;
           }
-      });
+          if(start == -1){
+            start = i;
+          }
+          tmp1.add(Files.get(i));
+        }
+        i++;
+      }
+      if(tmp2 == null){
+        Files.add(f1);
+        return;
+      }
+      Files.subList(start, Files.size()).clear();
+      Files.add(tmp2);
+      i = 0;
+      while(i < tmp1.size()){
+        Files.add(tmp1.get(i));
+        i++;
+      }
   }
   public int searchFile(LinkedList<leafFile> Files, String fileName){
     if(Files.size() == 0){
@@ -200,11 +282,11 @@ public class GoogleDocs {
     doc.addFileToDir("D1","f1.txt");
     doc.addFileToDir("D1","f2.txt");
     doc.addFileToDir("D1","f3.txt");
-    doc.addFileToDir("D2","f1.txt");
     doc.addFileToDir("D2","f2.txt");
     doc.addFileToDir("D2","f3.txt");
-    doc.removeFileFromDir("D1","f1.txt");
-    doc.moveFileToDir("D2","D1","f1.txt");
+    doc.addFileToDir("D2","f10.txt");
+    doc.removeFileFromDir("D1","f12.txt");
+    doc.moveFileToDir("D2","D1","f10.txt");
     doc.printFilesFromDir("D1");
     doc.printFilesFromDir("D2");
   }
