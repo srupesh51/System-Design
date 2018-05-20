@@ -1,115 +1,261 @@
 import java.util.*;
-class Player {
-  public int n;
-  Player(int n){
-    this.n = n;
+enum SUITETYPE {
+  ACE {
+      public String getDescription() {
+          return "ACE";
+      }
+  },
+  JACK {
+      public String getDescription() {
+          return "JACK";
+      }
+  },
+  QUEEN {
+      public String getDescription() {
+          return "QUEEN";
+      }
+  },
+  KING {
+      public String getDescription() {
+          return "KING";
+      }
+  };
+  public abstract String getDescription();
+}
+enum CARDSUITE {
+  HEART {
+      public String getDescription() {
+          return "HEART";
+      }
+  },
+  SPADE {
+      public String getDescription() {
+          return "SPADE";
+      }
+  },
+  CLUB {
+      public String getDescription() {
+          return "CLUB";
+      }
+  },
+  DIAMOND {
+      public String getDescription() {
+          return "DIAMOND";
+      }
+  },
+  JOKER {
+      public String getDescription() {
+          return "JOKER";
+      }
+  };
+  public abstract String getDescription();
+}
+enum CARDCOLOR {
+  RED {
+      public String getDescription() {
+          return "RED";
+      }
+  },
+  GREEN {
+      public String getDescription() {
+          return "GREEN";
+      }
+  },
+  BLUE {
+      public String getDescription() {
+          return "BLUE";
+      }
+  },
+  BROWN {
+      public String getDescription() {
+          return "BROWN";
+      }
+  },
+  BLACK {
+      public String getDescription() {
+          return "BLACK";
+      }
+  };
+  public abstract String getDescription();
+}
+class cards {
+  private CARDSUITE suite;
+  private CARDCOLOR color;
+  private SUITETYPE type;
+  private int cardNum;
+  cards(CARDSUITE suite, SUITETYPE type, CARDCOLOR color, int num){
+    this.cardNum = num;
+    this.color = color;
+    this.type = type;
+    this.suite = suite;
+  }
+  cards(CARDSUITE suite, CARDCOLOR color, int num){
+    this.suite = suite;
+    this.color = color;
+    this.cardNum = num;
+  }
+  public String getColor(){
+    return this.color == null ? " " : this.color.getDescription();
+  }
+  public String getSuite(){
+    return this.suite == null ? " " : this.suite.getDescription();
+  }
+  public String getSuiteType(){
+    return this.type == null ? " " : this.type.getDescription();
+  }
+  public int getCardNum(){
+    return this.cardNum;
+  }
+}
+class player {
+  private cards cardPlayer[] = new cards[13];
+  player(){}
+  public cards[] getCards(){
+    return this.cardPlayer;
+  }
+}
+class Deck {
+  private final int num_jokers = 2;
+  private cards cardList[] = new cards[52+num_jokers];
+  private CARDSUITE suites[] = {CARDSUITE.HEART, CARDSUITE.SPADE,
+  CARDSUITE.CLUB, CARDSUITE.DIAMOND, CARDSUITE.JOKER};
+  private SUITETYPE types[] = {SUITETYPE.ACE, SUITETYPE.JACK,
+  SUITETYPE.QUEEN,SUITETYPE.KING};
+  private CARDCOLOR colors[] = {CARDCOLOR.RED, CARDCOLOR.GREEN, CARDCOLOR.BLUE,
+    CARDCOLOR.BROWN, CARDCOLOR.BLACK};
+  Deck(){
+    int i = 0;
+    int n = 52;
+    int j = 0;
+    int k = 0;
+    while(i < n){
+      int s = 0;
+      k = 13;
+      int k1 = 0;
+      while(i < k){
+        if(i == 0){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j],k1++);
+        } else if(i < 10){
+          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+        } else {
+          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+        }
+        i++;
+      }
+      j++;
+      s = 0;
+      k1 = 0;
+      while(i < 2 * k){
+        if(s == 0){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j],k1++);
+          s++;
+        } else if(i < 23){
+          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+        } else {
+          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+        }
+        i++;
+      }
+      s = 0;
+      j++;
+      k1 = 0;
+      while(i < 3 * k){
+        if(s == 0){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j], k1++);
+          s++;
+        } else if(i < 36){
+          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+        } else {
+          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+        }
+        i++;
+      }
+      j++;
+      s = 0;
+      k1 = 0;
+      while(i < 4 * k){
+        if(s == 0){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j], k1++);
+          s++;
+        } else if(i < 49){
+          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+        } else {
+          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+        }
+        i++;
+      }
+      k = k1;
+    }
+    j++;
+    while(i < cardList.length){
+      this.cardList[i] = new cards(suites[j],colors[j],k++);
+      i++;
+    }
+  }
+  public cards getCurrentCardFromDeck(int i){
+      return this.cardList[i];
+  }
+  public void shuffle(int start, int end){
+    for(int i = start; i < end; i++){
+      int r = i + ((int)Math.random() * (end - i));
+      cards temp = cardList[i];
+      cardList[i] = cardList[r];
+      cardList[r] = temp;
+    }
   }
 }
 public class CardsGame {
-  private int numPlayers;
-  private static int nCards;
-  private char type;
-  private static CardsGame[] c;
-  public int cNumber;
-  private static HashMap<Character, HashMap<Integer,CardsGame>> map =
-  new HashMap<Character, HashMap<Integer,CardsGame>>();
-  CardsGame(){}
-  CardsGame(int n, int n1, int k){
-    this.numPlayers = n;
-    this.nCards = k == 0 ? (5 + n1)*n : (k+n1)*n;
-    this.c = new CardsGame[this.nCards];
-    int i;
-    char type[] = {'H','S','C','D'};
-    for(i = 0; i < this.nCards - k - 3; i++){
-      this.c[i] = setCardType(new Random().nextInt(10)+1, type[(int)new Random().nextInt(type.length)]);
-    }
-    char type1[] = {'J','Q','K'};
-    for(;i < this.nCards-k; i++){
-      char t = type1[(int)new Random().nextInt(type1.length)];
-      this.c[i] = setCardType(t == 'J'?11:t == 'Q'?12:13, t);
-    }
-    for(;i < this.nCards; i++){
-      this.c[i] = setCardType(Integer.MAX_VALUE, 'G');
+  private static Deck deck = new Deck();
+  private player p1;
+  private player p2;
+  private cards player1Cards[];
+  private cards player2Cards[];
+  CardsGame(){
+    this.p1 = new player();
+    this.p2 = new player();
+    this.player1Cards = this.p1.getCards();
+    this.player2Cards = this.p2.getCards();
+  }
+  public void startGame(){
+    int i = 0;
+    int j = i;
+    while(i < 13){
+      deck.shuffle(j, 54);
+      this.player1Cards[i] = deck.getCurrentCardFromDeck(j);
+      this.player2Cards[i] = deck.getCurrentCardFromDeck(j++);
+      i++;
+      j++;
     }
   }
-  public static CardsGame setCardType(int num, char type) {
-    CardsGame c1 = null;
-    if(!map.containsKey(type)){
-      CardsGame c2 = new CardsGame(type, num);
-      HashMap<Integer, CardsGame> m1 = new HashMap<Integer, CardsGame>();
-      m1.put(num, c2);
-      map.put(type, m1);
-    } else {
-      HashMap<Integer, CardsGame> m1 = map.get(type);
-      if(!m1.containsKey(num)){
-          CardsGame c2 = new CardsGame(type, num);
-          m1.put(num, c2);
-          map.put(type, m1);
-      }
+  public void takeAnotherPlayerCard(int i, cards src[], cards dest[]){
+    int j = i+1;
+    if(j > src.length){
+      return;
     }
-    c1 = map.get(type).get(num);
-    return c1;
+    if(Math.abs(src[j].getCardNum() - dest[i].getCardNum()) > 1){
+      return;
+    }
+    src[i] = dest[i];
   }
-  CardsGame(char type, int num){
-    this.type = type;
-    this.cNumber = num;
-  }
-  public CardsGame[] shuffle(CardsGame c[], int n){
-    for(int i = 0; i < n; i++){
-      int r = i + (int)(Math.random() * (n - i));
-      CardsGame t = c[i];
-      c[i] = c[r];
-      c[r] = t;
+  public void display(){
+    for(int i = 0; i < this.player1Cards.length; i++){
+      cards c2 = this.player1Cards[i];
+      System.out.println(c2.getColor()+" "+c2.getCardNum()+" "+
+      c2.getSuite()+" "+c2.getSuiteType()+" ");
+      System.out.println(" -- new line -- ");
     }
-    return c;
-  }
-  public static void display(Player p1, Player p2, int rem){
-    CardsGame c2[] = new CardsGame[p1.n];
-    CardsGame c3[] = new CardsGame[p2.n];
-    int index = 0;
-    for(int i = 0; i < 13; i++){
-      c2[i] = c[index];
-      c3[i] = c[++index];
-      index++;
+    System.out.println(" -- Finished player 1 -- ");
+    for(int i = 0; i < this.player2Cards.length; i++){
+      cards c2 = this.player2Cards[i];
+      System.out.println(c2.getColor()+" "+c2.getCardNum()+" "+
+      c2.getSuite()+" "+c2.getSuiteType()+" ");
+      System.out.println(" -- new line -- ");
     }
-    Arrays.sort(c2, new Comparator<CardsGame>(){
-      public int compare(CardsGame c7, CardsGame c8){
-            Character c23 = new Character(c7.type);
-            Character c24 = new Character(c8.type);
-            return (int)(c23.compareTo(c24));
-      }
-    });
-    Arrays.sort(c3, new Comparator<CardsGame>(){
-      public int compare(CardsGame c7, CardsGame c8){
-        Character c23 = new Character(c7.type);
-        Character c24 = new Character(c8.type);
-        return (int)(c23.compareTo(c24));
-      }
-    });
-    Arrays.sort(c2, new Comparator<CardsGame>(){
-      public int compare(CardsGame c7, CardsGame c8){
-            return c7.cNumber - c8.cNumber;
-      }
-    });
-    Arrays.sort(c3, new Comparator<CardsGame>(){
-      public int compare(CardsGame c7, CardsGame c8){
-            return c7.cNumber - c8.cNumber;
-      }
-    });
-    for(int i = 0; i < c2.length; i++){
-      System.out.println(c2[i].type+" "+c2[i].cNumber+" ");
-    }
-    System.out.println(" -- ");
-    for(int i = 0; i < c3.length; i++){
-      System.out.println(c3[i].type+" "+c3[i].cNumber+" ");
-    }
+    System.out.println(" -- Finished player 2 -- ");
   }
   public static void main(String args[]){
-    CardsGame c3 = new CardsGame(2, 52, 5);
-    Player p1 = new Player(13);
-    Player p2 = new Player(13);
-    char type[] = {'H','S','C','D'};
-    c = c3.shuffle(c, nCards);
-    display(p1,p2,(p1.n+p2.n));
+    CardsGame c3 = new CardsGame();
+    c3.startGame();
+    c3.display();
   }
 }
