@@ -134,11 +134,11 @@ class Deck {
       int k1 = 0;
       while(i < k){
         if(i == 0){
-          this.cardList[i] = new cards(suites[j],types[s], colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],types[s], colors[j],++k1);
         } else if(i < 10){
-          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],colors[j],++k1);
         } else {
-          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],types[++s],colors[j],++k1);
         }
         i++;
       }
@@ -146,13 +146,12 @@ class Deck {
       s = 0;
       k1 = 0;
       while(i < 2 * k){
-        if(s == 0){
-          this.cardList[i] = new cards(suites[j],types[s], colors[j],k1++);
-          s++;
+        if(s == 0 && i == 13){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j],++k1);
         } else if(i < 23){
-          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],colors[j],++k1);
         } else {
-          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],types[++s],colors[j],++k1);
         }
         i++;
       }
@@ -160,13 +159,12 @@ class Deck {
       j++;
       k1 = 0;
       while(i < 3 * k){
-        if(s == 0){
-          this.cardList[i] = new cards(suites[j],types[s], colors[j], k1++);
-          s++;
+        if(s == 0 && i == 26){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j], ++k1);
         } else if(i < 36){
-          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],colors[j],++k1);
         } else {
-          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],types[++s],colors[j],++k1);
         }
         i++;
       }
@@ -174,13 +172,12 @@ class Deck {
       s = 0;
       k1 = 0;
       while(i < 4 * k){
-        if(s == 0){
-          this.cardList[i] = new cards(suites[j],types[s], colors[j], k1++);
-          s++;
+        if(s == 0 && i == 39){
+          this.cardList[i] = new cards(suites[j],types[s], colors[j], ++k1);
         } else if(i < 49){
-          this.cardList[i] = new cards(suites[j],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],colors[j],++k1);
         } else {
-          this.cardList[i] = new cards(suites[j],types[s++],colors[j],k1++);
+          this.cardList[i] = new cards(suites[j],types[++s],colors[j],++k1);
         }
         i++;
       }
@@ -219,8 +216,8 @@ public class CardsGame {
   public void startGame(){
     int i = 0;
     int j = i;
+    deck.shuffle(0, 54);
     while(i < 13){
-      deck.shuffle(j, 54);
       this.player1Cards[i] = deck.getCurrentCardFromDeck(j);
       this.player2Cards[i] = deck.getCurrentCardFromDeck(j++);
       i++;
