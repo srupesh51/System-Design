@@ -52,6 +52,39 @@ class Pawn extends Piece {
   public Slot[] getSlot(){
     return slots;
   }
+  public boolean isSafe(Slot slots[], int x, int y, int cols){
+    return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
+  }
+  public int getValidPieces(Slot s, int index, int srcX, int srcY,
+  int destX, int destY, Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
+    }
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    if(!this.isFirst){
+      int X[] = {-1,1,2,-2};
+      int Y[] = {0,0,0,0};
+      for(int i = 0; i < X.length; i++){
+        if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+          return getValidPieces(s,index,srcX+X[i],srcY+Y[i],
+          destX,destY,slot,cols);
+        }
+      }
+    } else {
+      int X[] = {-1,1};
+      int Y[] = {0,0};
+      for(int i = 0; i < X.length; i++){
+        if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+          return getValidPieces(s,index,srcX+X[i],srcY+Y[i],
+          destX,destY,slot,cols);
+        }
+      }
+    }
+    return 0;
+  }
   public boolean isValid(Slot src, int destX, int destY){
     if(!isFirst){
       int X = src.getX();
@@ -98,6 +131,27 @@ class Bishop extends Piece {
       slots[1] = new Slot(7,5,CHESSPIECE.BISHOP);
     }
   }
+  public boolean isSafe(Slot slots[], int x, int y, int cols){
+    return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
+  }
+  public int getValidPieces(Slot s, int index, int srcX, int srcY,
+  int destX, int destY, Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
+    }
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    int X[] = {-1,0,1,0};
+    int Y[] = {0,-1,0,1};
+    for(int i = 0; i < X.length; i++){
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],destX,destY,slot,cols);
+      }
+    }
+    return 0;
+  }
   public boolean isValid(Slot src, int destX, int destY){
     int X = src.getX();
     int Y = src.getY();
@@ -126,6 +180,28 @@ class Rook extends Piece {
       slots[1] = new Slot(7,7,CHESSPIECE.ROOK);
     }
   }
+  public boolean isSafe(Slot slots[], int x, int y, int cols){
+    return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
+  }
+  public int getValidPieces(Slot s, int index, int srcX, int srcY, int destX, int destY,
+  Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
+    }
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    int X[] = {-1,-1,1,1};
+    int Y[] = {-1,1,1,-1};
+    for(int i = 0; i < X.length; i++){
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],destX,
+        destY,slot,cols);
+      }
+    }
+    return 0;
+  }
   public boolean isValid(Slot src, int destX, int destY){
     int X = src.getX();
     int Y = src.getY();
@@ -148,6 +224,27 @@ class Knight extends Piece {
       slots[0] = new Slot(7,1,CHESSPIECE.KNIGHT);
       slots[1] = new Slot(7,6,CHESSPIECE.KNIGHT);
     }
+  }
+  public boolean isSafe(Slot slots[], int x, int y, int cols){
+    return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
+  }
+  public int getValidPieces(Slot s, int index, int srcX,
+  int srcY,int destX, int destY,Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
+    }
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    int X[] = {-2,-2,2,2,-1,1,-1,1};
+    int Y[] = {-1,1,-1,1,-2,-2,2,2};
+    for(int i = 0; i < X.length; i++){
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],destX,destY,slot,cols);
+      }
+    }
+    return 0;
   }
   public boolean isValid(Slot src, int destX, int destY){
     int X = src.getX();
@@ -179,23 +276,23 @@ class King extends Piece {
   public boolean isSafe(Slot slots[], int x, int y, int cols){
     return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
   }
-  public boolean isPossible(Slot src, int index, int x, int y, Slot slots[], int cols){
-    if(slots[index].getX() == -1 && slots[index].getY() == -1){
-      return true;
+  public int getValidPieces(Slot s, int index, int srcX, int srcY,int destX, int destY,
+  Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
     }
-    int X[] = {-1,0,1,0};
-    int Y[] = {0,-1,0,1};
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    int X[] = {0,-1,1,0};
+    int Y[] = {-1,0,0,1};
     for(int i = 0; i < X.length; i++){
-      int xPos = src.getX();
-      int yPos = src.getY();
-      if(isSafe(slots, xPos+X[i], yPos+Y[i], cols)){
-        if(isPossible(src,((xPos+X[i] * 8)+(yPos+Y[i])),(xPos+X[i]),
-        (yPos + Y[i]), slots, cols)){
-          return true;
-        }
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],destX,destY,slot,cols);
       }
     }
-    return false;
+    return 0;
   }
   public boolean isValid(Slot src, int destX, int destY){
     int X = src.getX();
@@ -218,8 +315,29 @@ class Queen extends Piece {
       slots[0] = new Slot(7,3,CHESSPIECE.QUEEN);
     }
   }
+  public boolean isSafe(Slot slots[], int x, int y, int cols){
+    return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
+  }
   public Slot[] getSlot(){
     return slots;
+  }
+  public int getValidPieces(Slot s, int index, int srcX, int srcY, int destX, int destY,
+  Slot slot[], int cols){
+    if(srcX == destX && srcY == destY){
+      return 1;
+    }
+    if(srcX == 0 || srcX >= (slot.length/cols) || srcY == 0 ||
+      srcY >= cols){
+      return 0;
+    }
+    int X[] = {0,0,-1,1,-1,1,1,-1};
+    int Y[] = {-1,1,0,0,-1,1,-1,1};
+    for(int i = 0; i < X.length; i++){
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],destX,destY,slot,cols);
+      }
+    }
+    return 0;
   }
   public boolean isValid(Slot src, int destX, int destY){
     int X = src.getX();
@@ -293,7 +411,8 @@ class Player {
   private Knight pwn3 = null;
   private King pwn4 = null;
   private Queen pwn5 = null;
-  private boolean isCheckMate = false;
+  private boolean hasCheckMate = false;
+  private int numPieces = 16;
   Player(){}
   Player(CHESSCOLOR color){
     this.pwn = new Pawn(color);
@@ -309,30 +428,51 @@ class Player {
     }
     return false;
   }
-  public boolean hasCheckMate(Slot src, int destX, int destY){
-    this.isCheckMate = this.isCheck(src,destX,destY);
-    return this.isCheckMate;
-  }
-  public boolean isPossible(Slot src, int index, int destX, int destY,
-    Slot slots[], int cols){
-    if(this.hasCheckMate(src, destX, destY)){
-      return this.pwn4.isPossible(src,index,destX,destY,slots,cols);
+  public boolean isPossible(int destX, int destY,
+    Slot slots[], int cols, Player currentPlayer){
+    Slot s1[] = currentPlayer.pwn.getSlot();
+    int count = 0;
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
     }
-    return true;
+    s1 = currentPlayer.pwn1.getSlot();
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn1.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+    }
+    s1 = currentPlayer.pwn2.getSlot();
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn2.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+    }
+    s1 = currentPlayer.pwn3.getSlot();
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn3.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+    }
+    s1 = currentPlayer.pwn4.getSlot();
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn4.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+    }
+    s1 = currentPlayer.pwn5.getSlot();
+    for(int i = 0; i < s1.length; i++){
+      count += currentPlayer.pwn5.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+    }
+    return count != this.numPieces;
   }
   public void movePlayerPiece(CHESSPIECE p1, Slot src, Slot dest,
    int index, int destX, int destY, Slot slots[],int cols, Player opponentPlayer){
-     if(dest.getDescription().getDescription() == "KING"){
-       if(!opponentPlayer.pwn4.isPossible(src,index,destX,destY,slots,cols)){
-          return;
-       }
-    }
+     Slot sd[] = opponentPlayer.getSlot(CHESSPIECE.KING);
+     if(opponentPlayer.isCheck(src,sd[0].getX(),sd[0].getY()) && !opponentPlayer.isPossible(sd[0].getX(),
+        sd[0].getY(),slots,cols,this)){
+        opponentPlayer.hasCheckMate = true;
+        return;
+     }
      if(p1.getDescription() == "PAWN"){
        if(this.pwn.isValid(src,destX,destY)){
          CHESSPIECE p11 = dest.getDescription();
          if(opponentPlayer.isCheck(src,destX,destY)){
+           opponentPlayer.numPieces--;
            dest.setX(-1);
            dest.setY(-1);
+           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
          src.setX(destX);
          src.setY(destY);
@@ -344,8 +484,10 @@ class Player {
        if(this.pwn1.isValid(src,destX,destY)){
          CHESSPIECE p11 = dest.getDescription();
          if(opponentPlayer.isCheck(src,destX,destY)){
+           opponentPlayer.numPieces--;
            dest.setX(-1);
            dest.setY(-1);
+           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
          src.setX(destX);
          src.setY(destY);
@@ -357,8 +499,10 @@ class Player {
        if(this.pwn2.isValid(src,destX,destY)){
          CHESSPIECE p11 = dest.getDescription();
          if(opponentPlayer.isCheck(src,destX,destY)){
+           opponentPlayer.numPieces--;
            dest.setX(-1);
            dest.setY(-1);
+           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
          src.setX(destX);
          src.setY(destY);
@@ -370,6 +514,7 @@ class Player {
        if(this.pwn3.isValid(src,destX,destY)){
          CHESSPIECE p11 = dest.getDescription();
          if(opponentPlayer.isCheck(src,destX,destY)){
+           opponentPlayer.numPieces--;
            dest.setX(-1);
            dest.setY(-1);
            dest.setDescription(CHESSPIECE.UNDEFINED);
@@ -382,23 +527,26 @@ class Player {
      }
      if(p1.getDescription() == "KING"){
        if(this.pwn4.isValid(src,destX,destY)){
+          CHESSPIECE p11 = dest.getDescription();
           if(opponentPlayer.isCheck(src,destX,destY)){
-           CHESSPIECE p11 = dest.getDescription();
-           src.setX(destX);
-           src.setY(destY);
-           src.setDescription(p11);
+           opponentPlayer.numPieces--;
            dest.setX(-1);
            dest.setY(-1);
            dest.setDescription(CHESSPIECE.UNDEFINED);
          }
+         src.setX(destX);
+         src.setY(destY);
+         src.setDescription(p11);
        }
        return;
      }
      if(this.pwn5.isValid(src,destX,destY)){
        CHESSPIECE p11 = dest.getDescription();
-       if(this.isCheck(src,destX,destY)){
+       if(opponentPlayer.isCheck(src,destX,destY)){
+         this.numPieces--;
          dest.setX(-1);
          dest.setY(-1);
+         dest.setDescription(CHESSPIECE.UNDEFINED);
        }
        src.setX(destX);
        src.setY(destY);
@@ -556,12 +704,15 @@ class Game {
        }
      }
    }
-   public void demoFeature(int x, int y){
-     Slot s[] = this.player2.getSlot(CHESSPIECE.KING);
+   public void demoFeature(){
+     Slot s[] = this.player1.getSlot(CHESSPIECE.KING);
      for(int j = 0; j < s.length; j++){
        Slot s1 = s[j];
-       System.out.println(this.player2.isPossible(s1,s1.getIndex(),x,y,this.squares.getSlot(),
-       this.squares.getCols())+" ");
+       System.out.println(this.player1.isPossible(s1.getX(),s1.getY(),
+       this.getSquares().getSlot(),this.getSquares().getCols(),this.player2)+" ");
+       Slot s2[] = this.player1.getSlot(CHESSPIECE.QUEEN);
+       this.player1.movePlayerPiece(CHESSPIECE.QUEEN,s2[0],s1,0,s1.getX(),
+       s1.getY(),this.getSquares().getSlot(),this.getSquares().getCols(),this.player2);
      }
    }
 }
@@ -569,6 +720,6 @@ public class ChessGame {
   public static void main(String args[]){
     Game gm = new Game(8,8);
     gm.display();
-    gm.demoFeature(7,4);
+    gm.demoFeature();
   }
 }
