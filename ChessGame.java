@@ -74,7 +74,10 @@ class Pawn extends Piece {
       int X = srcX;
       int Y = srcY;
       if(Math.abs(X - destX) == 2 && Math.abs(Y - destY) == 0){
-        if(X == destX && Y == destY){
+        if(X+2 == destX && Y == destY){
+          return 1;
+        }
+        if(X-2 == destX && Y == destY){
           return 1;
         }
       }
@@ -509,7 +512,7 @@ class Player {
         count += currentPlayer.pwn5.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
       }
     }
-    return count != this.numPieces;
+    return count != currentPlayer.numPieces;
   }
   public void setValidity(CHESSPIECE p1, Slot s){
     if(p1.getDescription() == "PAWN"){
@@ -794,13 +797,13 @@ class Game {
      }
    }
    public void demoFeature(){
-     Slot s[] = this.player2.getSlot(CHESSPIECE.KING);
+     Slot s[] = this.player1.getSlot(CHESSPIECE.KING);
      for(int j = 0; j < s.length; j++){
        Slot s1 = s[j];
-       System.out.println(this.player2.isPossible(s1.getX(),s1.getY(),
+       System.out.println(this.player1.isPossible(s1.getX(),s1.getY(),
        this.getSquares().getSlot(),this.getSquares().getCols(),this.player2)+" ");
-       Slot s2[] = this.player2.getSlot(CHESSPIECE.QUEEN);
-       this.movePlayerPiece(this.player2,this.player1,CHESSPIECE.QUEEN,
+       Slot s2[] = this.player1.getSlot(CHESSPIECE.QUEEN);
+       this.movePlayerPiece(this.player1,this.player2,CHESSPIECE.QUEEN,
        s2[0],s1);
      }
    }
