@@ -4,6 +4,7 @@ class Slot {
   private int j;
   private CHESSPIECE p1;
   private int index;
+  private boolean isValid = true;
   Slot(int i, int j, CHESSPIECE p1){
     this.i = i;
     this.j = j;
@@ -11,6 +12,12 @@ class Slot {
   }
   public int getIndex(){
     return this.index;
+  }
+  public void setPieceValidity(){
+    this.isValid = false;
+  }
+  public boolean isValid(){
+    return this.isValid;
   }
   public void setIndex(int index){
     this.index = index;
@@ -52,11 +59,27 @@ class Pawn extends Piece {
   public Slot[] getSlot(){
     return slots;
   }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
+  }
   public boolean isSafe(Slot slots[], int x, int y, int cols){
     return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
   }
   public int getValidPieces(Slot s, int index, int srcX, int srcY,
   int destX, int destY, Slot slot[], int cols){
+    if(!isFirst){
+      int X = srcX;
+      int Y = srcY;
+      if(Math.abs(X - destX) == 2 && Math.abs(Y - destY) == 0){
+        if(X == destX && Y == destY){
+          return 1;
+        }
+      }
+      isFirst = true;
+    }
     if(srcX == destX && srcY == destY){
       return 1;
     }
@@ -64,23 +87,12 @@ class Pawn extends Piece {
       srcY >= cols){
       return 0;
     }
-    if(!this.isFirst){
-      int X[] = {-1,1,2,-2};
-      int Y[] = {0,0,0,0};
-      for(int i = 0; i < X.length; i++){
-        if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
-          return getValidPieces(s,index,srcX+X[i],srcY+Y[i],
-          destX,destY,slot,cols);
-        }
-      }
-    } else {
-      int X[] = {-1,1};
-      int Y[] = {0,0};
-      for(int i = 0; i < X.length; i++){
-        if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
-          return getValidPieces(s,index,srcX+X[i],srcY+Y[i],
-          destX,destY,slot,cols);
-        }
+    int X[] = {-1,1};
+    int Y[] = {0,0};
+    for(int i = 0; i < X.length; i++){
+      if(isSafe(slot,srcX+X[i],srcY+Y[i],cols)){
+        return getValidPieces(s,index,srcX+X[i],srcY+Y[i],
+        destX,destY,slot,cols);
       }
     }
     return 0;
@@ -121,6 +133,12 @@ class Bishop extends Piece {
   }
   public Slot[] getSlot(){
     return slots;
+  }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
   }
   public void setSlot(){
     if(this.getColor() == "WHITE"){
@@ -170,6 +188,12 @@ class Rook extends Piece {
   }
   public Slot[] getSlot(){
     return slots;
+  }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
   }
   public void setSlot(){
     if(this.getColor() == "WHITE"){
@@ -225,6 +249,12 @@ class Knight extends Piece {
       slots[1] = new Slot(7,6,CHESSPIECE.KNIGHT);
     }
   }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
+  }
   public boolean isSafe(Slot slots[], int x, int y, int cols){
     return x >=0 && x < (slots.length/cols) && y >=0 && y < cols;
   }
@@ -270,6 +300,12 @@ class King extends Piece {
       slots[0] = new Slot(7,4,CHESSPIECE.KING);
     }
   }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
+  }
   public Slot[] getSlot(){
     return slots;
   }
@@ -307,6 +343,12 @@ class Queen extends Piece {
   private Slot slots[] = new Slot[1];
   Queen(CHESSCOLOR color){
     super(color);
+  }
+  public void setPieceValidity(Slot s){
+    s.setPieceValidity();
+  }
+  public boolean getPieceValidity(Slot s){
+    return s.isValid();
   }
   public void setSlot(){
     if(this.getColor() == "WHITE"){
@@ -433,32 +475,69 @@ class Player {
     Slot s1[] = currentPlayer.pwn.getSlot();
     int count = 0;
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     s1 = currentPlayer.pwn1.getSlot();
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn1.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn1.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn1.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     s1 = currentPlayer.pwn2.getSlot();
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn2.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn2.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn2.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     s1 = currentPlayer.pwn3.getSlot();
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn3.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn3.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn3.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     s1 = currentPlayer.pwn4.getSlot();
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn4.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn4.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn4.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     s1 = currentPlayer.pwn5.getSlot();
     for(int i = 0; i < s1.length; i++){
-      count += currentPlayer.pwn5.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      if(currentPlayer.pwn5.getPieceValidity(s1[i])){
+        count += currentPlayer.pwn5.getValidPieces(s1[i],i,s1[i].getX(),s1[i].getY(),destX,destY,slots,cols);
+      }
     }
     return count != this.numPieces;
   }
+  public void setValidity(CHESSPIECE p1, Slot s){
+    if(p1.getDescription() == "PAWN"){
+      this.pwn.setPieceValidity(s);
+      return;
+    }
+    if(p1.getDescription() == "ROOK"){
+      this.pwn1.setPieceValidity(s);
+      return;
+    }
+    if(p1.getDescription() == "BISHOP"){
+      this.pwn2.setPieceValidity(s);
+      return;
+    }
+    if(p1.getDescription() == "KNIGHT"){
+      this.pwn3.setPieceValidity(s);
+      return;
+    }
+    if(p1.getDescription() == "KING"){
+      this.pwn4.setPieceValidity(s);
+      return;
+    }
+    if(p1.getDescription() == "QUEEN"){
+      this.pwn5.setPieceValidity(s);
+    }
+  }
   public void movePlayerPiece(CHESSPIECE p1, Slot src, Slot dest,
-   int index, int destX, int destY, Slot slots[],int cols, Player opponentPlayer){
+  Slot slots[],int cols, Player opponentPlayer){
      Slot sd[] = opponentPlayer.getSlot(CHESSPIECE.KING);
      if(opponentPlayer.isCheck(src,sd[0].getX(),sd[0].getY()) && !opponentPlayer.isPossible(sd[0].getX(),
         sd[0].getY(),slots,cols,this)){
@@ -466,91 +545,102 @@ class Player {
         return;
      }
      if(p1.getDescription() == "PAWN"){
-       if(this.pwn.isValid(src,destX,destY)){
-         CHESSPIECE p11 = dest.getDescription();
-         if(opponentPlayer.isCheck(src,destX,destY)){
+       if(this.pwn.isValid(src,dest.getX(),dest.getY())){
+         CHESSPIECE p11 = src.getDescription();
+         if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+           CHESSPIECE p12 = dest.getDescription();
+           opponentPlayer.setValidity(p12,dest);
            opponentPlayer.numPieces--;
-           dest.setX(-1);
-           dest.setY(-1);
-           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
-         src.setX(destX);
-         src.setY(destY);
-         src.setDescription(p11);
+         dest.setX(src.getX());
+         dest.setY(src.getY());
+         dest.setDescription(p11);
+         src.setX(-1);
+         src.setY(-1);
+         src.setDescription(CHESSPIECE.UNDEFINED);
        }
        return;
      }
      if(p1.getDescription() == "ROOK"){
-       if(this.pwn1.isValid(src,destX,destY)){
-         CHESSPIECE p11 = dest.getDescription();
-         if(opponentPlayer.isCheck(src,destX,destY)){
+       if(this.pwn1.isValid(src,dest.getX(),dest.getY())){
+         CHESSPIECE p11 = src.getDescription();
+         if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+           CHESSPIECE p12 = dest.getDescription();
+           opponentPlayer.setValidity(p12,dest);
            opponentPlayer.numPieces--;
-           dest.setX(-1);
-           dest.setY(-1);
-           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
-         src.setX(destX);
-         src.setY(destY);
-         src.setDescription(p11);
+         dest.setX(src.getX());
+         dest.setY(src.getY());
+         dest.setDescription(p11);
+         src.setX(-1);
+         src.setY(-1);
+         src.setDescription(CHESSPIECE.UNDEFINED);
        }
        return;
      }
      if(p1.getDescription() == "BISHOP"){
-       if(this.pwn2.isValid(src,destX,destY)){
-         CHESSPIECE p11 = dest.getDescription();
-         if(opponentPlayer.isCheck(src,destX,destY)){
+       if(this.pwn2.isValid(src,dest.getX(),dest.getY())){
+         CHESSPIECE p11 = src.getDescription();
+         if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+           CHESSPIECE p12 = dest.getDescription();
+           opponentPlayer.setValidity(p12,dest);
            opponentPlayer.numPieces--;
-           dest.setX(-1);
-           dest.setY(-1);
-           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
-         src.setX(destX);
-         src.setY(destY);
-         src.setDescription(p11);
+         dest.setX(src.getX());
+         dest.setY(src.getY());
+         dest.setDescription(p11);
+         src.setX(-1);
+         src.setY(-1);
+         src.setDescription(CHESSPIECE.UNDEFINED);
        }
        return;
      }
      if(p1.getDescription() == "KNIGHT"){
-       if(this.pwn3.isValid(src,destX,destY)){
-         CHESSPIECE p11 = dest.getDescription();
-         if(opponentPlayer.isCheck(src,destX,destY)){
-           opponentPlayer.numPieces--;
-           dest.setX(-1);
-           dest.setY(-1);
-           dest.setDescription(CHESSPIECE.UNDEFINED);
+       if(this.pwn3.isValid(src,dest.getX(),dest.getY())){
+         CHESSPIECE p11 = src.getDescription();
+         if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+           CHESSPIECE p12 = dest.getDescription();
+           opponentPlayer.setValidity(p12,dest);
          }
-         src.setX(destX);
-         src.setY(destY);
-         src.setDescription(p11);
+         dest.setX(src.getX());
+         dest.setY(src.getY());
+         dest.setDescription(p11);
+         src.setX(-1);
+         src.setY(-1);
+         src.setDescription(CHESSPIECE.UNDEFINED);
        }
        return;
      }
      if(p1.getDescription() == "KING"){
-       if(this.pwn4.isValid(src,destX,destY)){
-          CHESSPIECE p11 = dest.getDescription();
-          if(opponentPlayer.isCheck(src,destX,destY)){
+       if(this.pwn4.isValid(src,dest.getX(),dest.getY())){
+         CHESSPIECE p11 = src.getDescription();
+         if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+           CHESSPIECE p12 = dest.getDescription();
+           opponentPlayer.setValidity(p12,dest);
            opponentPlayer.numPieces--;
-           dest.setX(-1);
-           dest.setY(-1);
-           dest.setDescription(CHESSPIECE.UNDEFINED);
          }
-         src.setX(destX);
-         src.setY(destY);
-         src.setDescription(p11);
+         dest.setX(src.getX());
+         dest.setY(src.getY());
+         dest.setDescription(p11);
+         src.setX(-1);
+         src.setY(-1);
+         src.setDescription(CHESSPIECE.UNDEFINED);
        }
        return;
      }
-     if(this.pwn5.isValid(src,destX,destY)){
-       CHESSPIECE p11 = dest.getDescription();
-       if(opponentPlayer.isCheck(src,destX,destY)){
-         this.numPieces--;
-         dest.setX(-1);
-         dest.setY(-1);
-         dest.setDescription(CHESSPIECE.UNDEFINED);
+     if(p1.getDescription() == "QUEEN" && this.pwn5.isValid(src,dest.getX(),dest.getY())){
+       CHESSPIECE p11 = src.getDescription();
+       if(opponentPlayer.isCheck(src,dest.getX(),dest.getY())){
+         CHESSPIECE p12 = dest.getDescription();
+         opponentPlayer.setValidity(p12,dest);
+         opponentPlayer.numPieces--;
        }
-       src.setX(destX);
-       src.setY(destY);
-       src.setDescription(p11);
+       dest.setX(src.getX());
+       dest.setY(src.getY());
+       dest.setDescription(p11);
+       src.setX(-1);
+       src.setY(-1);
+       src.setDescription(CHESSPIECE.UNDEFINED);
      }
   }
   public void setSlot(CHESSPIECE p1){
@@ -684,10 +774,9 @@ class Game {
     return this.squares;
   }
   public void movePlayerPiece(Player currentPlayer, Player opponentPlayer,
-   CHESSPIECE p1, Slot src, int index, Slot dest,
-   int destX, int destY){
+   CHESSPIECE p1, Slot src, Slot dest){
      BoardPiece bPiece = this.getSquares();
-     currentPlayer.movePlayerPiece(p1,src,dest,index,destX,destY, bPiece.getSlot(),
+     currentPlayer.movePlayerPiece(p1,src,dest,bPiece.getSlot(),
      bPiece.getCols(),opponentPlayer);
    }
    public void display(){
@@ -705,14 +794,14 @@ class Game {
      }
    }
    public void demoFeature(){
-     Slot s[] = this.player1.getSlot(CHESSPIECE.KING);
+     Slot s[] = this.player2.getSlot(CHESSPIECE.KING);
      for(int j = 0; j < s.length; j++){
        Slot s1 = s[j];
-       System.out.println(this.player1.isPossible(s1.getX(),s1.getY(),
+       System.out.println(this.player2.isPossible(s1.getX(),s1.getY(),
        this.getSquares().getSlot(),this.getSquares().getCols(),this.player2)+" ");
-       Slot s2[] = this.player1.getSlot(CHESSPIECE.QUEEN);
-       this.player1.movePlayerPiece(CHESSPIECE.QUEEN,s2[0],s1,0,s1.getX(),
-       s1.getY(),this.getSquares().getSlot(),this.getSquares().getCols(),this.player2);
+       Slot s2[] = this.player2.getSlot(CHESSPIECE.QUEEN);
+       this.movePlayerPiece(this.player2,this.player1,CHESSPIECE.QUEEN,
+       s2[0],s1);
      }
    }
 }
